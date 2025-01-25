@@ -2,7 +2,7 @@
     @for (card of statusCards; track $index) {
     <div
         class="flex items-center gap-3 p-4 border border-surface rounded-xl shadow-[0px_1px_2px_0px_rgba(18,18,23,0.05)] bg-emphasis w-full sm:w-60">
-        <p-avatar [image]="card.avatarUrl" class="rounded-lg overflow-hidden w-14 h-14"></p-avatar>
+        <p-avatar [image]="'status-card-car.jpg'" class="rounded-lg overflow-hidden w-20 h-20"></p-avatar>
         <div class="flex-1">
             <div class="font-semibold leading-7">{{ card.count }}</div>
             <div class="text-muted-color text-sm mt-1">{{ card.status }}</div>
@@ -20,20 +20,24 @@
 </div>
 
 
-<div class="grid grid-cols-1 md:grid-cols-12 gap-6">
+<div class="grid grid-cols-1 md:grid-cols-10 gap-6">
     <!-- Left Column -->
     <div class="col-span-1 md:col-span-7">
-        <div class="flex-1 border border-surface rounded-2xl p-5">
-            <app-generic-table [data]="tableData" [config]="tableConfig" title="Vehicles" [showActions]="false"
+        <div class="border border-surface rounded-2xl p-5">
+            <app-generic-table 
+                [data]="tableData" 
+                [config]="tableConfig" 
+                title="Vehicles" 
+                [showActions]="false"
                 [activeOnes]="activeOnes">
             </app-generic-table>
         </div>
     </div>
 
     <!-- Right Column -->
-    <div class="col-span-1 md:col-span-5">
+    <div class="col-span-1 md:col-span-3">
         <!-- Add explicit height and width for map rendering -->
-        <div class="h-[500px] w-full rounded-2xl border border-surface relative">
+        <div class="h-[400px] w-full relative">
             <!-- Ensure Leaflet container inherits full height/width -->
             <div
                 class="absolute inset-0"
@@ -44,5 +48,4 @@
         </div>
     </div>
 </div>
-
 

@@ -51,8 +51,8 @@ export class DashboardComponent implements OnInit {
     setTimeout(() => {
       this.markerClusters = markerClusterGroup();
       this.map.invalidateSize();
+      this.loadDashboardService();
     }, 100);
-    this.loadDashboardService();
   }
 
   plotMarkers = (response: any[]) => {  
@@ -192,12 +192,10 @@ export class DashboardComponent implements OnInit {
       // Create Table Data
       const {tableData,ignTrueCount } = this.createTableData(response?.data);
       this.tableData = tableData;
-      this.activeOnes = `${ignTrueCount} vehicles with IgnitionOn`;
-
-      // Plot Markers on the Map
-      setTimeout(()=>{
-        this.plotMarkers(response?.data);
-      },100)
+      this.activeOnes = `${ignTrueCount} Vehicles with IgnitionOn`;
+      
+      // Plot Markers
+      this.plotMarkers(response?.data);
 
     } catch (error) {
 

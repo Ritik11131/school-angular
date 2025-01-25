@@ -10,11 +10,11 @@ export const dashboardTableConfig: TableConfig = {
         
         displayType: 'chip',
       },
-      {
-        field: 'imm',
-        header: 'Immobilizer',
-        displayType: 'chip',
-      },
+      // {
+      //   field: 'imm',
+      //   header: 'Immobilizer',
+      //   displayType: 'chip',
+      // },
       { field: 'extVolt', header: 'Battery Voltage', },
       { field: 'deviceTime', header: 'Last Update',  displayType:'date' },
 
