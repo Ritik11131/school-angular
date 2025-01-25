@@ -3,8 +3,16 @@
 {
   "compileOnSave": false,
   "compilerOptions": {
+    "baseUrl": "./src",
     "outDir": "./dist/out-tsc",
     "strict": true,
+    "paths": {
+      "primeng/*": ["../../packages/primeng/src/*/public_api"],
+      "@primeng/themes/*": ["../../packages/themes/src/presets/*"],
+      "@primeng/themes": ["../../packages/themes/src/index.ts"],
+
+      "@/*": ["./*"]
+  },
     "noImplicitOverride": true,
     "noPropertyAccessFromIndexSignature": true,
     "noImplicitReturns": true,
