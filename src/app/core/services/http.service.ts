@@ -15,7 +15,7 @@ export class HttpService {
   private getHttpOptions(): { headers: HttpHeaders } {
     return {
       headers: new HttpHeaders({
-        'Access-Control-Allow-Origin': '*',
+        // 'Access-Control-Allow-Origin': '*',
         // Add other headers if needed
       })
     };

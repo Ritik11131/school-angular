@@ -14,7 +14,7 @@
     /* Custom Scrollbar Styles */
     /* For Webkit Browsers */
     ::-webkit-scrollbar {
-      width: 0.5rem; /* Equivalent to w-2 */
+      width: 0.2rem; /* Equivalent to w-2 */
     }
   
     ::-webkit-scrollbar-track {

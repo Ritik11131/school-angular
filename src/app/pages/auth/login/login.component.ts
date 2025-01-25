@@ -55,7 +55,7 @@ export class LoginComponent implements OnInit {
     try {
       await this.authService.login(this.email,this.password);
       // this.toastService.showSuccess('Success', 'Successfully logged in!');
-      this.router.navigate(['/main/device'])
+      this.router.navigate(['/main/dashboard'])
     } catch (error : any) {
       console.error(error);
     } finally {
