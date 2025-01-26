@@ -19,7 +19,7 @@ export class CrewComponent implements OnInit {
 
   tableConfig: TableConfig = crewTableConfig;
   tableData: ICrew[] = [];
-
+  loading: boolean = false;
   crewFormFields = signal<FormField[]>(NEW_CREW_FORM_JSON);
 
   constructor(private crewService: CrewService, private uiService: UiService) { }
@@ -35,6 +35,7 @@ export class CrewComponent implements OnInit {
 
 
   async operateCrewList() {
+    this.loading = true;
     try {
       const data: ICrew[] = await this.crewService.getCrewList();
       this.tableData = data.map((crew: ICrew) => ({
@@ -45,8 +46,10 @@ export class CrewComponent implements OnInit {
           crew.isTeacher ? 'Teacher' : null,
         ].filter(Boolean).join(', ') || 'Unassigned' // Join roles or set to 'No Role' if none
       }));
+      this.loading = false;
     } catch (error) {
       this.uiService.showToast('error', 'Error', 'Failed to fetch crew list');
+      this.loading = false;
     }
   }
 

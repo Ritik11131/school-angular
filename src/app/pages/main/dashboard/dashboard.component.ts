@@ -35,7 +35,7 @@ export class DashboardComponent implements OnInit {
     zoom: 5,
     center: latLng(27.54095593, 79.16035184)
   };
-
+  loading: boolean = false;
   tableConfig: TableConfig = dashboardTableConfig;
   statusCards: IstatusCards[] = statusCards;
   tableData: any[] = [];
@@ -182,6 +182,7 @@ export class DashboardComponent implements OnInit {
 
 
   async loadDashboardService() {
+    this.loading = true;
     try {
       const response: IResponse = await this.dashboardService.fetchVehicleList();
       console.log(response);
@@ -197,8 +198,11 @@ export class DashboardComponent implements OnInit {
       // Plot Markers
       this.plotMarkers(response?.data);
 
-    } catch (error) {
+      this.loading = false;
 
+    } catch (error) {
+      console.error(error);
+      this.loading = false;
     }
   }
 

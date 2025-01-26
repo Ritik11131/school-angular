@@ -15,50 +15,52 @@ import { Component, signal, TemplateRef, ViewChild } from '@angular/core';
   styleUrl: './parent.component.css'
 })
 export class ParentComponent {
-    @ViewChild("createParentContent") createParentContent!: TemplateRef<any>;
-  
-    tableConfig: TableConfig = parentTableConfig;
-      tableData: IParent[] = [];
-    
-      parentFormFields = signal<FormField[]>(NEW_PARENT_FORM_JSON);
-    
-      constructor(private parentService: ParentService, private uiService: UiService) { }
-    
-      ngOnInit(): void {
-        this.loadCrewService();
-      }
-    
-    
-      async loadCrewService() {
-        await this.operateCrewList();
-      }
-    
-    
-      async operateCrewList() {
-        try {
-          const data: IParent[] = await this.parentService.getParentList();
-          this.tableData = data;
-        } catch (error) {
-          this.uiService.showToast('error', 'Error', 'Failed to fetch crew list');
-        }
-      }
-    
-      handleNewCrew() {
-        this.uiService.openDrawer(this.createParentContent, "Parent Management");
-    
-      }
-    
-      async handleFormSubmit(formData: FormData): Promise<void> {
-        console.log('Form submitted:', formData);
-        try {
-          const response = await this.parentService.createParent(formData as IMutateParent);
-          console.log(response);
-          this.uiService.closeDrawer();
-          this.uiService.showToast('success', 'Success', 'Crew created successfully');
-          this.loadCrewService();
-        } catch (error: any) {
-          console.log(error);
-          this.uiService.showToast('error', 'Error', 'Failed to create crew');
-        }
-      }
+  @ViewChild("createParentContent") createParentContent!: TemplateRef<any>;
+
+  tableConfig: TableConfig = parentTableConfig;
+  tableData: IParent[] = [];
+  loading: boolean = false;
+  parentFormFields = signal<FormField[]>(NEW_PARENT_FORM_JSON);
+
+  constructor(private parentService: ParentService, private uiService: UiService) { }
+
+  ngOnInit(): void {
+    this.loadParentService();
+  }
+
+
+  async loadParentService() {
+    await this.operateParentList();
+  }
+
+
+  async operateParentList() {
+    this.loading = true;
+    try {
+      const data: IParent[] = await this.parentService.getParentList();
+      this.tableData = data;
+      this.loading = false;
+    } catch (error) {
+      this.uiService.showToast('error', 'Error', 'Failed to fetch parent list');
+      this.loading = false;
+    }
+  }
+
+  handleNewParent() {
+    this.uiService.openDrawer(this.createParentContent, "Parent Management");
+  }
+
+  async handleFormSubmit(formData: FormData): Promise<void> {
+    console.log('Form submitted:', formData);
+    try {
+      const response = await this.parentService.createParent(formData as IMutateParent);
+      console.log(response);
+      this.uiService.closeDrawer();
+      this.uiService.showToast('success', 'Success', 'Parent created successfully');
+      this.loadParentService();
+    } catch (error: any) {
+      console.log(error);
+      this.uiService.showToast('error', 'Error', 'Failed to create parent');
+    }
+  }
 }

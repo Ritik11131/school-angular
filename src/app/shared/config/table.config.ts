@@ -10,21 +10,10 @@ export const dashboardTableConfig: TableConfig = {
         
         displayType: 'chip',
       },
-      // {
-      //   field: 'imm',
-      //   header: 'Immobilizer',
-      //   displayType: 'chip',
-      // },
       { field: 'extVolt', header: 'Battery Voltage', },
       { field: 'deviceTime', header: 'Last Update',  displayType:'date' },
 
     ],
-    // toolbar: {
-    //   showNew: true,
-    //   showDelete: true,
-    //   showImport: true,
-    //   showExport: true
-    // },
     paginator: true,
     globalFilter: true,
     selectionMode: 'single',
@@ -43,14 +32,11 @@ export const dashboardTableConfig: TableConfig = {
     ],
     toolbar: {
       showNew: true,
-      // showDelete: true,
-      // showImport: true,
-      // showExport: true
     },
     paginator: true,
     globalFilter: true,
     selectionMode: 'single',
-    minWidth:'55rem',
+    minWidth:'75rem',
     showCurrentPageReport: true,
     rowHover: true,
     responsive: true
@@ -65,14 +51,45 @@ export const dashboardTableConfig: TableConfig = {
     ],
     toolbar: {
       showNew: true,
-      // showDelete: true,
-      // showImport: true,
-      // showExport: true
     },
     paginator: true,
     globalFilter: true,
     selectionMode: 'single',
-    minWidth:'55rem',
+    minWidth:'75rem',
+    showCurrentPageReport: true,
+    rowHover: true,
+    responsive: true
+  };
+
+  export const routeTableConfig: TableConfig = {
+    columns: [
+      { field: 'name', header: 'Route Name', },
+      { field: 'type', header: 'Type', },
+      { field: 'description', header: 'Description', },
+      { field: 'distanceM', header: 'Distance (m)', },
+      { field: 'startTime', header: 'Start Time', },
+      { field: 'endTime', header: 'End Time', },
+      { field: 'startCoordinates', header: 'Start Coordinates', },
+      { field: 'endCoordinates', header: 'End Coordinates', },
+    ],
+    toolbar: {
+      showNew: true,
+    },
+    actions: {
+      customButtons: [
+        {
+          id: 1,
+          key: 'view',
+          tooltip: 'View Route',
+          icon: 'pi pi-eye',
+          severity: 'contrast'
+        },
+      ]
+    },
+    paginator: true,
+    globalFilter: true,
+    selectionMode: 'single',
+    minWidth:'75rem',
     showCurrentPageReport: true,
     rowHover: true,
     responsive: true

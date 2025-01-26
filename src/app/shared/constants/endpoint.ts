@@ -12,3 +12,6 @@ export const CREATE_CREW_ENDPOINT = 'crew/create';
 // Parent Endpoints
 export const GET_PARENT_LIST_ENDPOINT = 'parents/list';
 export const CREATE_PARENT_ENDPOINT = 'parents/create';
+
+// Route Endpoints
+export const GET_ROUTE_LIST_ENDPOINT = 'routes/list';
