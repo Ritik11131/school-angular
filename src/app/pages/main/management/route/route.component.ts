@@ -6,6 +6,7 @@ import { IRoute } from '@/app/shared/interfaces/route.interfaces';
 import { TableConfig } from '@/app/shared/interfaces/table.interface';
 import { Component, TemplateRef, ViewChild } from '@angular/core';
 import { LeafletModule } from '@bluehalo/ngx-leaflet';
+import * as L from 'leaflet';
 import { latLng, Map, tileLayer } from 'leaflet';
 
 @Component({
@@ -44,7 +45,45 @@ export class RouteComponent {
     this.map = map;
     setTimeout(() => {
       this.map.invalidateSize();
+      // If you have a selected route, add its GeoJSON layer
+      if (this.selectedRoute?.geojson) {
+        this.addGeoJsonLayer(this.selectedRoute.geojson);
+      }
     }, 200);
+  }
+
+  private addGeoJsonLayer(geoJson: any): void {
+    const geoJsonLayer = L.geoJSON(geoJson, {
+      onEachFeature: (feature, layer) => {
+        if (feature.properties && feature.properties.name) {
+          layer.bindPopup(feature.properties.name);
+        }
+      },
+      pointToLayer: (feature, latlng) => {
+      
+
+      // Create a custom icon
+      const customIcon = L.icon({
+        iconSize: [25, 41],
+        iconAnchor: [13, 41],
+        iconUrl: 'marker-icon.png', // Ensure the path is correct
+        shadowUrl: 'marker-shadow.png', // Ensure the path is correct
+       
+      });
+
+      return L.marker(latlng, { icon: customIcon });
+      },
+      style: (feature) => {
+        return {
+          color: '#ff7800',
+          weight: 5,
+          opacity: 0.65
+        };
+      }
+    }).addTo(this.map);
+
+    // Fit the map to the bounds of the GeoJSON layer
+    this.map.fitBounds(geoJsonLayer.getBounds());
   }
 
 
@@ -65,12 +104,25 @@ export class RouteComponent {
     }
   }
 
-  handleConfigActionClicked(event: any) {
+  async operateRouteWithId(id: number) {
+    this.loading = true;
+    try {
+      const data: IRoute = await this.routeService.getRouteById(id);
+      this.selectedRoute = data;
+      this.uiService.openDrawer(this.viewRouteContent, 'Route Management');
+      this.loading = false;
+    } catch (error) {
+      this.uiService.showToast('error', 'Error', 'Failed to fetch route');
+      this.loading = false;
+    }
+  }
+
+  async handleConfigActionClicked(event: any) {
     console.log('Config Action Clicked:', event);
-    const action = event.action;
+    const {action, item} = event;
     switch (action) {
       case 'view':
-        this.selectedRoute = event.item;
+        await this.operateRouteWithId(item.id);
         this.uiService.openDrawer(this.viewRouteContent, 'Route Management');
         break;
       default:

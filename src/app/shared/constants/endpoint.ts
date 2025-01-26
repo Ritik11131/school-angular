@@ -15,3 +15,4 @@ export const CREATE_PARENT_ENDPOINT = 'parents/create';
 
 // Route Endpoints
 export const GET_ROUTE_LIST_ENDPOINT = 'routes/list';
+export const GET_ROUTE_BY_ID_ENDPOINT = 'routes/detail';
