@@ -75,6 +75,7 @@
                         <div *ngFor="let navItem of sampleAppsSidebarNavsMore"
                             [pTooltip]="isSlimMenu ? navItem.title : null"
                             class="px-4 py-1 flex items-center gap-1 cursor-pointer text-base rounded-lg transition-all select-none"
+                            (click)="handleMoreNavClick(navItem)"
                             [ngClass]="{
                                 'w-12 justify-center py-4': isSlimMenu,
                                 'w-full': !isSlimMenu,
@@ -121,3 +122,18 @@
     '320px': { width: '80%' } 
     }"
 />
+
+<ng-template #settingsContent>    
+    <div class="flex flex-col items-center justify-center">
+        <p-avatar image="https://www.primefaces.org/cdn/primevue/images/landing/apps/main-avatar.png" styleClass="w-32 h-32" size="xlarge" shape="circle" />
+        <div class="leading-6 font-medium text-color mt-4 w-full text-center">Ritik Gupta</div>
+        <div class="leading-5 text-sm text-muted-color mt-1 w-full text-center">&#64;ritikgupta</div>
+        <div class="flex items-center justify-center flex-wrap gap-1 mt-4">
+            <!-- <p-button icon="pi pi-phone text-muted-color" severity="secondary" text />
+            <p-button icon="pi pi-video text-muted-color" severity="secondary" text />
+            <p-button icon="pi pi-info-circle text-muted-color" severity="secondary" text /> -->
+            <p-button (onClick)="handleLogOut()" icon="pi pi-sign-out" severity="danger" text />
+           
+        </div>
+    </div>
+</ng-template>

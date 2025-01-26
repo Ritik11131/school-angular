@@ -43,7 +43,6 @@
         </div>
 
         <!-- Sign In Button -->
-        <p-button styleClass="w-full" (click)="signIn()" icon="pi pi-sign-in" iconPos="right" label="Login">
-        </p-button>
+        <p-button styleClass="w-full" (click)="signIn()" icon="pi pi-sign-in" iconPos="right" label="Login" [loading]="loading" />
     </div>
 </div>
