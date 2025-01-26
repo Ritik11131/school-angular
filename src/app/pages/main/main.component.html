@@ -1,26 +1,34 @@
 <section class="landing-hero px-8 lg:px-20">
-    <div class="flex flex-col items-center">
-        <div  class="bg-surface-0 border border-black/10 dark:border-white/20 dark:bg-surface-950 w-full h-[85vh] max-h-[1040px] 
-                    rounded-3xl p-6 lg:flex lg:mt-20 items-start gap-6 overflow-hidden">
+    <div class="grid gap-6 justify-items-center">
+        <div
+            class="grid bg-surface-0 border border-black/10 dark:border-white/20 dark:bg-surface-950 w-full h-[85vh] max-h-[1040px] 
+            rounded-3xl p-6 lg:mt-20 gap-6 grid-cols-1 lg:grid-cols-[auto_1fr] overflow-hidden">
+            <!-- Sidebar Section -->
             <div [ngClass]="{
                     'w-auto': isSlimMenu,
                     'w-72': !isSlimMenu
-                }" class="rounded-2xl p-5 bg-surface-50 dark:bg-surface-900 h-full flex flex-col justify-between">
+                }" 
+                class="rounded-2xl p-5 bg-surface-50 dark:bg-surface-900 h-full flex flex-col justify-between">
+                <!-- Sidebar Header -->
                 <div [ngClass]="{
                         'w-12 flex flex-col items-center': isSlimMenu,
                         'w-auto': !isSlimMenu
                     }">
                     <div class="flex items-center gap-3">
-                        <div class="w-14 h-14 border border-primary rounded-xl flex items-center justify-center bg-white shadow-md hover:shadow-lg transition-shadow duration-200">
-                            <img src="school_logo.png" alt="Maintenance Logo" class="w-9 h-9 object-contain animate-pulse" />
+                        <div
+                            class="w-14 h-14 border border-primary rounded-xl flex items-center justify-center bg-white shadow-md hover:shadow-lg transition-shadow duration-200">
+                            <img src="school_logo.png" alt="Maintenance Logo"
+                                class="w-9 h-9 object-contain animate-pulse" />
                         </div>
                         <div [ngClass]="{
                                 hidden: isSlimMenu,
                                 block: !isSlimMenu
-                            }" class="text-surface-950 dark:text-surface-0 font-medium text-3xl">
+                            }" 
+                            class="text-surface-950 dark:text-surface-0 font-medium text-3xl">
                             VAHAN
                         </div>
                     </div>
+                    <!-- Navigation Items -->
                     <div class="mt-10 flex flex-col gap-2">
                         <div *ngFor="let navItem of sampleAppsSidebarNavs"
                             [pTooltip]="isSlimMenu ? navItem.title : null"
@@ -44,6 +52,7 @@
                         </div>
                     </div>
                 </div>
+                <!-- Sidebar Footer -->
                 <div [ngClass]="{
                         'w-12 flex flex-col items-center': isSlimMenu,
                         'w-auto': !isSlimMenu
@@ -91,10 +100,24 @@
                     </div>
                 </div>
             </div>
-            <div class="flex h-full overflow-y-auto pb-0.5">
+            <!-- Main Content Section -->
+            <div class="h-full overflow-y-auto pb-0.5">
                 <router-outlet></router-outlet>
             </div>
         </div>
     </div>
 </section>
 
+    <app-generic-drawer [isOpen]="uiService.isDrawerOpen()" [contentTemplate]="uiService.drawerContent()" [header]="uiService.drawerHeader()">
+    </app-generic-drawer>
+  <p-toast [life]="2000" [breakpoints]="{
+    '920px': { width: '50%' },
+    '768px': { width: '60%' },
+    '640px': { width: '70%' }, 
+    '568px': { width: '80%' },
+    '480px': { width: '90%' },
+    '414px': { width: '80%' },
+    '375px': { width: '80%' },
+    '320px': { width: '80%' } 
+    }"
+/>

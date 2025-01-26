@@ -161,8 +161,8 @@
               }
               @case ('chip') {
                 <p-tag
-                  [value]="(col.field === 'isConfigMatched') ? (item[col.field] === null ? 'Not Configured' : item[col.field] ? 'Matched' : 'Not Matched') : item[col.field] ? 'On' : 'Off'"
-                  [severity]="item[col.field] ? 'success' : 'danger'"
+                  [value]="(col.field === 'role' ? item[col.field] : item[col.field]) || '-'"
+                  [severity]="(col.field === 'role' ? (item[col.field] === 'Pilot' ?  'info' : item[col.field] === 'teacher' ? 'warn' : 'contrast') : 'success')"
                 />
               }
               @case ('avatar') {

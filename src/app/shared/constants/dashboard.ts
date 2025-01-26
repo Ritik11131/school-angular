@@ -36,11 +36,11 @@ export const statusCards: IstatusCards[] = [
         color: 'text-gray-500',
         avatarUrl: 'https://www.primefaces.org/cdn/primevue/images/landing/apps/main-avatar.png'
     },
-    {
-        id:6,
-        count: 0,
-        status: 'Never Connected',
-        color: '',
-        avatarUrl: 'https://www.primefaces.org/cdn/primevue/images/landing/apps/main-avatar.png'
-    }
+    // {
+    //     id:6,
+    //     count: 0,
+    //     status: 'Never Connected',
+    //     color: '',
+    //     avatarUrl: 'https://www.primefaces.org/cdn/primevue/images/landing/apps/main-avatar.png'
+    // }
 ];

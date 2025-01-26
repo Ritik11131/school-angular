@@ -1,1 +1,10 @@
-<p>crew works!</p>
+<div class="border border-surface rounded-2xl p-5">
+    <app-generic-table [data]="tableData" [config]="tableConfig" title="Crew" [showActions]="false" [activeOnes]="'0 Crews'" (onNew)="handleNewCrew()">
+    </app-generic-table>
+</div>
+
+
+<ng-template #createCrewContent>
+    <h3 class="text-xl font-semibold mb-4 text-muted-color-emphasis">Create a Crew</h3>
+    <app-generic-form [fields]="crewFormFields()" (formSubmit)="handleFormSubmit($event)"></app-generic-form>
+</ng-template>

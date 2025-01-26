@@ -1,7 +1,7 @@
-<div class="flex flex-wrap gap-4 items-start justify-between p-6 border border-surface rounded-3xl mb-6">
+<div class="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 lg:grid-cols-4 xl:grid-cols-5 gap-6 p-6 border border-surface rounded-3xl mb-6">
     @for (card of statusCards; track $index) {
     <div
-        class="flex items-center gap-3 p-4 border border-surface rounded-xl shadow-[0px_1px_2px_0px_rgba(18,18,23,0.05)] bg-emphasis w-full sm:w-60">
+        class="flex items-center gap-3 p-4 border border-surface rounded-xl shadow-[0px_1px_2px_0px_rgba(18,18,23,0.05)] bg-emphasis">
         <p-avatar [image]="'status-card-car.jpg'" class="rounded-lg overflow-hidden w-20 h-20"></p-avatar>
         <div class="flex-1">
             <div class="font-semibold leading-7">{{ card.count }}</div>
@@ -18,6 +18,7 @@
     </div>
     }
 </div>
+
 
 
 <div class="grid grid-cols-1 md:grid-cols-10 gap-6">

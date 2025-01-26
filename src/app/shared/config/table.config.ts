@@ -33,3 +33,25 @@ export const dashboardTableConfig: TableConfig = {
     rowHover: true,
     responsive: true
   };
+
+  export const crewTableConfig: TableConfig = {
+    columns: [
+      { field: 'name', header: 'Crew Name', },
+      { field: 'role', header: 'Role', displayType: 'chip' },
+      { field: 'licenseNumber', header: 'License Number', },
+      { field: 'contactNumber', header: 'Contact Number', },
+    ],
+    toolbar: {
+      showNew: true,
+      // showDelete: true,
+      // showImport: true,
+      // showExport: true
+    },
+    paginator: true,
+    globalFilter: true,
+    selectionMode: 'single',
+    minWidth:'55rem',
+    showCurrentPageReport: true,
+    rowHover: true,
+    responsive: true
+  };

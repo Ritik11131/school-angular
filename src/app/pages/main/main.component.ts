@@ -15,11 +15,13 @@ import { TooltipModule } from 'primeng/tooltip';
 import { FormsModule } from '@angular/forms';
 import { DrawerModule } from 'primeng/drawer';
 import { moreSidebarNavigations, sidebarNavigations } from '@/app/shared/constants/sidebar';
+import { GenericDrawerComponent } from '@/app/shared/components/generic-drawer/generic-drawer.component';
+import { UiService } from '@/app/core/services/ui.service';
 
 @Component({
   selector: 'app-main',
   imports: [CommonModule, ButtonModule, InputTextModule, CardModule, ToastModule, DividerModule, SelectModule, MultiSelectModule,
-    AvatarModule, RouterModule, FormsModule, TooltipModule, OverlayBadgeModule, DrawerModule],
+    AvatarModule, RouterModule, FormsModule, TooltipModule, OverlayBadgeModule, DrawerModule,GenericDrawerComponent],
   templateUrl: './main.component.html',
   styleUrl: './main.component.css'
 })
@@ -32,7 +34,7 @@ export class MainComponent {
   selectedSampleAppsSidebarNav: any = 'Device';
   isSlimMenu: boolean = true;
 
-  constructor(private router: Router) {
+  constructor(private router: Router, public uiService:UiService) {
     const lastSelectedNav = localStorage.getItem('lastSelectedNav')?.split(',');
     this.setSelectedSampleAppsSidebarNav(lastSelectedNav?.[0] || 'Device', lastSelectedNav?.[1] || '/main/dashboard');
   }

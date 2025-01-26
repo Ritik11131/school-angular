@@ -67,4 +67,20 @@ export class AuthService {
   public getToken(): string | null {
     return this.token || localStorage.getItem('access_token');
   }
+
+  /**
+   * Get the token from local storage.
+   * @returns The token if it exists, null otherwise.
+   */
+  public getRefreshToken(): string | null {
+    return localStorage.getItem('refresh_token');
+  }
+
+  /**
+   * Get the token from local storage.
+   * @returns The token if it exists, null otherwise.
+   */
+  public getTokenType(): string | null {
+    return localStorage.getItem('type');
+  }
 }

@@ -6,9 +6,12 @@ import { providePrimeNG } from 'primeng/config';
 import  Noir from '@/app/theme/app-theme';
 import { provideHttpClient, withInterceptors } from '@angular/common/http';
 import { apiInterceptor } from '@/app/core/interceptors/api.interceptor';
+import { ConfirmationService, MessageService } from 'primeng/api';
 
 export const appConfig: ApplicationConfig = {
   providers: [
+    MessageService, 
+    ConfirmationService,
     provideZoneChangeDetection({ eventCoalescing: true }), 
     provideRouter(routes),
     provideAnimationsAsync(),
