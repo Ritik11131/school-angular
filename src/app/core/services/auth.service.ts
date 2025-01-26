@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from './http.service'; // Adjust the path as necessary
 import { environment } from '@/environments/environment';
-import { LOGIN_ENDPOINT } from '@/app/shared/constants/endpoint'; // Adjust the path as necessary
+import { LOGIN_ENDPOINT, REFRESH_ENDPOINT } from '@/app/shared/constants/endpoint'; // Adjust the path as necessary
 import { IResponse } from '@/app/shared/interfaces/api.interfaces';
 import { ILogin } from '@/app/shared/interfaces/auth.interface';
 
@@ -39,6 +39,8 @@ export class AuthService {
   logout(): void {
     this.token = null;
     localStorage.removeItem('access_token'); // Clear token from local storage
+    localStorage.removeItem('refresh_token'); // Clear token from local storage
+    localStorage.removeItem('type'); // Clear token from local storage
   }
 
   /**
@@ -53,7 +55,7 @@ export class AuthService {
    * Set the token in local storage.
    * @param token The token to set.
    */
-  private setAuthTokens(loginResponse: ILogin): void {
+  public setAuthTokens(loginResponse: ILogin): void {
     this.token = loginResponse.accessToken;
     localStorage.setItem('access_token', loginResponse.accessToken);
     localStorage.setItem('refresh_token', loginResponse.refreshToken);
@@ -82,5 +84,10 @@ export class AuthService {
    */
   public getTokenType(): string | null {
     return localStorage.getItem('type');
+  }
+
+  async refreshToken(): Promise<IResponse> {
+    const response = await this.httpService.post<IResponse>(REFRESH_ENDPOINT, { refreshToken : this.getRefreshToken() });
+    return response;
   }
 }

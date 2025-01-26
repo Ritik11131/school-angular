@@ -1,5 +1,6 @@
 // Authentication Endpoints
 export const LOGIN_ENDPOINT = 'oauth/token';
+export const REFRESH_ENDPOINT = 'oauth/token/refresh';
 
 
 // Dashboard Endpoints
