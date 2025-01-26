@@ -1,0 +1,12 @@
+export interface IParent {
+    id: number; // Assuming id is a number
+    name: string;
+    email: string;
+    contactNumber: string;
+}
+
+export interface IMutateParent {
+    name: string;
+    email: string;
+    contactNumber: string;
+  }

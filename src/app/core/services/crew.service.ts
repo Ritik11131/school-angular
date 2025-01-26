@@ -18,6 +18,6 @@ export class CrewService {
   }
 
   async createCrew(data: IMutateCrew): Promise<IResponse> {
-    return this.httpService.post<IResponse>(CREATE_CREW_ENDPOINT, data, true);
+    return this.httpService.post<IResponse>(CREATE_CREW_ENDPOINT, data);
   }
 }
