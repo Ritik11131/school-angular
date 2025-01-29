@@ -162,7 +162,7 @@
               @case ('chip') {
                 <p-tag
                   [value]="(col.field === 'role' ? item[col.field] : item[col.field]) || '-'"
-                  [severity]="(col.field === 'role' ? (item[col.field] === 'Pilot' ?  'info' : item[col.field] === 'teacher' ? 'warn' : 'contrast') : 'success')"
+                  [severity]="(col.field === 'role' ? (item[col.field] === 'Pilot' ?  'info' : item[col.field] === 'Teacher' ? 'warn' : 'contrast') : 'success')"
                 />
               }
               @case ('avatar') {

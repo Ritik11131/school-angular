@@ -41,6 +41,7 @@ export class AuthService {
     localStorage.removeItem('access_token'); // Clear token from local storage
     localStorage.removeItem('refresh_token'); // Clear token from local storage
     localStorage.removeItem('type'); // Clear token from local storage
+    localStorage.removeItem('lastSelectedNav'); // Clear last nav from local storage
   }
 
   /**
