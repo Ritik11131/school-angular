@@ -7,6 +7,7 @@ export interface IParent {
 
 export interface IMutateParent {
     name: string;
+    username: string;
     email: string;
     contactNumber: string;
   }

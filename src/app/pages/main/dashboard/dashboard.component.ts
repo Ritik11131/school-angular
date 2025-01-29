@@ -1,3 +1,4 @@
+import { LeafletModule } from '@bluehalo/ngx-leaflet';
 import { GenericTableComponent } from '@/app/shared/components/generic-table/generic-table.component';
 import { dashboardTableConfig } from '@/app/shared/config/table.config';
 import { statusCards } from '@/app/shared/constants/dashboard';
@@ -7,15 +8,15 @@ import { CommonModule } from '@angular/common';
 import { Component, OnInit } from '@angular/core';
 import { AvatarModule } from 'primeng/avatar';
 import { ButtonModule } from 'primeng/button';
-import { LeafletModule } from '@bluehalo/ngx-leaflet';
+import { LeafletMarkerClusterModule } from '@bluehalo/ngx-leaflet-markercluster';
 import { icon, latLng, marker, polyline, tileLayer, point, Map, markerClusterGroup, MarkerClusterGroup } from 'leaflet';
-import 'leaflet.markercluster';
 import { DashboardService } from '@/app/core/services/dashboard.service';
 import { IResponse } from '@/app/shared/interfaces/api.interfaces';
+import 'leaflet.markercluster';
 
 @Component({
   selector: 'app-dashboard',
-  imports: [ButtonModule, AvatarModule, CommonModule, LeafletModule, GenericTableComponent],
+  imports: [ButtonModule, AvatarModule, CommonModule, LeafletModule, GenericTableComponent, LeafletMarkerClusterModule],
   templateUrl: './dashboard.component.html',
   styleUrl: './dashboard.component.css'
 })
