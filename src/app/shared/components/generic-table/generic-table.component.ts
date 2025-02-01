@@ -15,6 +15,8 @@ import { TableConfig } from '@/app/shared/interfaces/table.interface';
 import { IconFieldModule } from 'primeng/iconfield';
 import { InputIconModule } from 'primeng/inputicon';
 import { TooltipModule } from 'primeng/tooltip';
+import { TagSeverityPipe } from '@/app/core/pipes/table-pipes/tag-severity.pipe';
+import { TagValuePipe } from '@/app/core/pipes/table-pipes/tag-value.pipe';
 
 
 @Component({
@@ -33,7 +35,10 @@ import { TooltipModule } from 'primeng/tooltip';
     AvatarModule,
     IconFieldModule,
     InputIconModule,
-    ChipModule],
+    ChipModule,
+    TagSeverityPipe,
+    TagValuePipe
+  ],
   templateUrl: './generic-table.component.html',
   styleUrl: './generic-table.component.css'
 })
@@ -57,6 +62,7 @@ export class GenericTableComponent {
   @Output() onExport = new EventEmitter<void>();
   @Output() configActionClicked = new EventEmitter<{ action: string; item: any }>();
   @Output() nestedConfigActionClicked = new EventEmitter<{ action: string; item: any }>();
+  @Output() toolbarCustomActionClicked = new EventEmitter<{ action: string; event?:any }>();
   @Output() rowExpand = new EventEmitter<any>(); // Event emitter for row expand
   @Output() rowCollapse = new EventEmitter<any>(); // Event emitter for row collapse
 
@@ -91,6 +97,10 @@ export class GenericTableComponent {
 
   handleNestedActionClick(action: string, item: any) : void {    
     this.nestedConfigActionClicked.emit({ action, item });
+  }
+
+  handleCustomToolbarActionClick(action: string, event?:any) : void {
+    this.toolbarCustomActionClicked.emit({ action, event });
   }
 
 

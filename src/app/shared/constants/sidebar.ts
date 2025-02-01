@@ -3,7 +3,7 @@ export const sidebarNavigations = [
     { icon: 'pi pi-user', title: 'Crew Management', href: '/main/management/crew' },
     { icon: 'pi pi-users', title: 'Parent Management', href: '/main/management/parent' },
     { icon: 'pi pi-map-marker', title: 'Route Management', href: '/main/management/route' },
-    { icon: 'pi pi-graduation-cap', title: 'Student Management', href: '/main/management/student' },
+    // { icon: 'pi pi-graduation-cap', title: 'Student Management', href: '/main/management/student' },
 ];
 
 export const moreSidebarNavigations = [

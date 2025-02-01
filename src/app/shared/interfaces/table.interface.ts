@@ -3,7 +3,7 @@ export interface ColumnConfig {
     header: string;
     filter?: boolean;
     filterType?: 'text' | 'select' | 'date';
-    displayType?: 'text' | 'image' | 'chip' | 'avatar' | 'rating' | 'currency' | 'date';
+    displayType?: 'text' | 'image' | 'chip' | 'avatar' | 'rating' | 'currency' | 'date' | 'icon';
     width?: string;
     styleClass?: string;
     imageConfig?: {
@@ -25,10 +25,12 @@ export interface ColumnConfig {
     importLabel?: string;
     exportLabel?: string;
     customButtons?: {
-      label: string;
+      id:number;
+      key:string;
+      label?:string;
+      tooltip: string;
       icon?: string;
       severity?: "success" | "info" | "warn" | "danger" | "help" | "primary" | "secondary" | "contrast" | null | undefined;
-      onClick: () => void;
     }[];
   }
   

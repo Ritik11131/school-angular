@@ -19,28 +19,45 @@
             [disabled]="!selectedItems.length"
           />
         }
-        @for (btn of config.toolbar?.customButtons; track btn.label) {
-          <p-button
+        @for (btn of config.toolbar?.customButtons; track btn.key) {
+          @if(btn.key === 'upload_sample_file') {
+            <p-fileUpload
+            mode="basic"
+            accept=".xlsx"
+            [maxFileSize]="1000000"
+            [chooseIcon]="btn.icon"
+            [chooseLabel]="btn.label || 'Import'"
+            class="mr-2 inline-block"
+            [auto]="true"
+            [chooseButtonProps]="{ severity: 'contrast' }"
+            (onSelect)="handleCustomToolbarActionClick(btn.key, $event)"
+          />
+          } @else {
+            <p-button
+            class="mr-2"
             [label]="btn.label"
+            [pTooltip]="btn.tooltip"
+            tooltipPosition="bottom"
             [icon]="btn.icon"
             [severity]="btn.severity"
-            class="ml-2"
-            (onClick)="btn.onClick()"
-          />
+            (onClick)="handleCustomToolbarActionClick(btn.key)"
+            />
+          }
         }
       </ng-template>
 
       <ng-template #end>
         @if (config.toolbar?.showImport) {
-          <!-- <p-fileUpload
+          <p-fileUpload
             mode="basic"
             accept="*"
             [maxFileSize]="1000000"
-            [chooseLabel]="config.toolbar.importLabel || 'Import'"
+            [chooseLabel]="config.toolbar?.importLabel || 'Import'"
             class="mr-2 inline-block"
+            [auto]="true"
             [chooseButtonProps]="{ severity: 'secondary' }"
             (onSelect)="onImport.emit($event)"
-          /> -->
+          />
         }
         @if (config.toolbar?.showExport) {
           <p-button
@@ -149,7 +166,7 @@
         </td>
         }
         @for (col of config.columns; track col.field) {
-          <td>
+          <td class="text-center">
             @switch (col.displayType) {
               @case ('image') {
                 <img
@@ -160,11 +177,17 @@
                 />
               }
               @case ('chip') {
-                <p-tag
-                  [value]="(col.field === 'role' ? item[col.field] : item[col.field]) || '-'"
-                  [severity]="(col.field === 'role' ? (item[col.field] === 'Pilot' ?  'info' : item[col.field] === 'Teacher' ? 'warn' : 'contrast') : 'success')"
-                />
+                <p-tag [value]="item | tagValue: col.field" [severity]="item | tagSeverity: col.field" />
               }
+              @case('icon') {
+                <i class="pi"
+                [ngClass]="{
+                    'text-green-500 pi-check-circle': item[col.field],
+                    'text-red-500 pi-times-circle': !item[col.field]
+                }"
+            ></i>
+              }
+              
               @case ('avatar') {
                 <p-avatar
                   [image]="item[col.field]"

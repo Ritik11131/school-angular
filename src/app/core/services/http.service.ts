@@ -2,6 +2,7 @@ import { HttpClient, HttpHeaders, HttpParams } from '@angular/common/http';
 import { Injectable } from '@angular/core';
 import { environment } from '@/environments/environment';
 import { firstValueFrom } from 'rxjs';
+import { saveAs } from 'file-saver'; // Import file-saver
 
 @Injectable({
   providedIn: 'root'
@@ -80,5 +81,53 @@ export class HttpService {
    */
   delete<T>(endpoint: string, id: number | undefined, isAuth: boolean = false): Promise<T> {
     return firstValueFrom(this.http.delete<T>(`${this.getBaseUrl(isAuth)}/${endpoint}/${id}`, this.getHttpOptions()));
+  }
+
+
+  /**
+   * Download a file from the given endpoint.
+   *
+   * @param endpoint The endpoint to download the file from.
+   * @param fileName The name of the file to save.
+   * @param isAuth Optional flag to indicate if the request is for authentication.
+   * @returns A promise that resolves when the file is downloaded.
+   */
+  async downloadFile(endpoint: string, fileName: string, isAuth: boolean = false): Promise<void> {
+    const url = `${this.getBaseUrl(isAuth)}/${endpoint}`;
+    const options = { ...this.getHttpOptions(), responseType: 'blob' as 'json' };
+
+    try {
+      const blob = await firstValueFrom(this.http.get<Blob>(url, options));
+      saveAs(blob, fileName); // Use file-saver to save the file
+    } catch (error) {
+      console.error('Error downloading file:', error);
+      throw error;
+    }
+  }
+
+  /**
+   * Upload a file to the specified endpoint.
+   *
+   * @param endpoint The API endpoint to upload the file to.
+   * @param file The file to upload.
+   * @param isAuth Optional flag to indicate if the request is for authentication.
+   * @returns A promise that resolves to the response.
+   */
+  async uploadFile(endpoint: string, file: File, isAuth: boolean = false): Promise<any> {
+    const url = `${this.getBaseUrl(isAuth)}/${endpoint}`;
+    const formData = new FormData();
+    formData.append('file', file);
+
+    const options = {
+      headers: this.getHttpOptions().headers
+    };
+
+    try {
+      const response = await firstValueFrom(this.http.post(url, formData, options));
+      return response;
+    } catch (error) {
+      console.error('Error uploading file:', error);
+      throw error;
+    }
   }
 }

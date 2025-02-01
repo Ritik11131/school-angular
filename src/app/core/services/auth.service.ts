@@ -88,7 +88,11 @@ export class AuthService {
   }
 
   async refreshToken(): Promise<IResponse> {
-    const response = await this.httpService.post<IResponse>(REFRESH_ENDPOINT, { refreshToken : this.getRefreshToken() }, true);
+    const response = await this.httpService.post<IResponse>(REFRESH_ENDPOINT, { 
+      clientId: environment.CLIENT_ID,
+      clientSecret: environment.CLIENT_SECRET, 
+      refreshToken : this.getRefreshToken()
+     }, true);
     return response;
   }
 }

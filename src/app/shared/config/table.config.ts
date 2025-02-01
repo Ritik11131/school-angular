@@ -48,9 +48,32 @@ export const dashboardTableConfig: TableConfig = {
       { field: 'name', header: 'Parent Name', },
       { field: 'email', header: 'Email', },
       { field: 'contactNumber', header: 'Contact Number', },
+      { field: 'emergencyContact', header: 'Emergency Number', },
+      { field: 'smsEnabled', header: 'Sms', displayType: 'icon'},
+      { field: 'pushEnabled', header: 'Push', displayType: 'icon'},
+      { field: 'isActive', header: 'Status', displayType: 'chip' },
     ],
     toolbar: {
       showNew: true,
+      showExport: true,
+      customButtons: [
+        {
+          id: 1,
+          key: 'download_sample_file',
+          label: 'Download Sample', // Clear and specific
+          tooltip: 'Download a sample file', // Provides context
+          icon: 'pi pi-cloud-download',
+          severity: 'contrast'
+        },
+        {
+          id: 2,
+          key: 'upload_sample_file',
+          label: 'Upload Sample', // Consistent with the download action
+          tooltip: 'Upload a sample file', // Explains purpose
+          icon: 'pi pi-cloud-upload',
+          severity: 'contrast'
+        }
+      ]
     },
     paginator: true,
     globalFilter: true,
