@@ -1,0 +1,10 @@
+<div class="border border-surface rounded-2xl p-5">
+    <app-generic-table [data]="tableData" [config]="tableConfig" title="Plans" [showActions]="false" [activeOnes]="'0 Plans'" [loading]="loading" (onNew)="handleNewCrew()">
+    </app-generic-table>
+</div>
+
+
+<ng-template #createPlanContent>
+    <h3 class="text-xl font-semibold mb-4 text-muted-color-emphasis">Create a Plan</h3>
+    <app-generic-form [fields]="planFormFields()" (formSubmit)="handleFormSubmit($event)"></app-generic-form>
+</ng-template>

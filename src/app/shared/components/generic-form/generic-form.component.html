@@ -18,6 +18,15 @@
                 class="w-full"
               >
             }
+            @case ('number') {
+              <p-inputnumber class="w-full" [placeholder]="field.placeholder"  [formControlName]="field.name" [inputId]="field.name" mode="decimal" [minFractionDigits]="2" [maxFractionDigits]="5" [min]="0" [max]="100000" />
+            }
+            @case ('slider') {
+              <div class="mt-4">
+                <p-slider [animate]="true" [formControlName]="field.name" class="w-full" />
+                <p-tag [value]="'Slided Value: ' + form.get(field.name)?.value" class="w-full" />
+              </div>
+            }
             @case ('email') {
               <input pInputText
                 type="email"

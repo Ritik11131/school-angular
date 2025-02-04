@@ -5,6 +5,9 @@ import { ButtonModule } from "primeng/button"
 import { InputTextModule } from "primeng/inputtext"
 import { TextareaModule } from 'primeng/textarea';
 import { RadioButtonModule } from "primeng/radiobutton"
+import { InputNumberModule } from 'primeng/inputnumber';
+import { SliderModule } from 'primeng/slider';
+import { TagModule } from 'primeng/tag';
 
 export interface FormField {
   label: string
@@ -24,7 +27,7 @@ export type FormData = {
 
 @Component({
   selector: 'app-generic-form',
-  imports: [CommonModule, ReactiveFormsModule, ButtonModule, InputTextModule, TextareaModule, RadioButtonModule],
+  imports: [CommonModule, ReactiveFormsModule, ButtonModule, InputTextModule, TextareaModule, RadioButtonModule, InputNumberModule, SliderModule, TagModule],
   templateUrl: './generic-form.component.html',
   styleUrl: './generic-form.component.css'
 })
@@ -37,7 +40,8 @@ export class GenericFormComponent implements OnInit {
 
   formFields = signal<FormField[]>([])
   form!: FormGroup
-  submitButtonText = signal("Save")
+  submitButtonText = signal("Save");
+  sliderValue: number = 0
 
   constructor(private formbuilder: FormBuilder) {}
 
@@ -68,7 +72,7 @@ export class GenericFormComponent implements OnInit {
     if (control?.errors) {
       const field = this.formFields().find((f) => f.name === fieldName)
       if (field) {
-        return field.validate ? field.validate(control.value) || "" : ""
+        return field.validate ? field.validate(control.value || '') || "" : ""
       }
     }
     return ""

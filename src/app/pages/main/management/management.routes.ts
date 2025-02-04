@@ -3,6 +3,7 @@ import { CrewComponent } from './crew/crew.component';
 import { ParentComponent } from './parent/parent.component';
 import { RouteComponent } from './route/route.component';
 import { StudentComponent } from './student/student.component';
+import { PlansComponent } from './plans/plans.component';
 
 
 export const managementRoutes: Routes = [
@@ -19,7 +20,7 @@ export const managementRoutes: Routes = [
         component: RouteComponent
     },
     {
-        path: 'student',
-        component: StudentComponent
+        path: 'plans',
+        component: PlansComponent
     },
 ];

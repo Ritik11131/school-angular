@@ -117,3 +117,23 @@ export const dashboardTableConfig: TableConfig = {
     rowHover: true,
     responsive: true
   };
+
+
+  export const plansTableConfig: TableConfig = {
+    columns: [
+      { field: 'name', header: 'Crew Name', },
+      { field: 'role', header: 'Role', displayType: 'chip' },
+      { field: 'licenseNumber', header: 'License Number', },
+      { field: 'contactNumber', header: 'Contact Number', },
+    ],
+    toolbar: {
+      showNew: true,
+    },
+    paginator: true,
+    globalFilter: true,
+    selectionMode: 'single',
+    minWidth:'75rem',
+    showCurrentPageReport: true,
+    rowHover: true,
+    responsive: true
+  };

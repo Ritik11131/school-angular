@@ -20,3 +20,7 @@ export const UPLOAD_PARENT_BULK_ENDPOINT = 'bulk/parents/create';
 // Route Endpoints
 export const GET_ROUTE_LIST_ENDPOINT = 'routes/list';
 export const GET_ROUTE_BY_ID_ENDPOINT = 'routes/detail';
+
+// Plan Endpoints
+export const GET_PLAN_LIST_ENDPOINT = 'plans/list';
+export const CREATE_PLAN_ENDPOINT = 'plans/create'
