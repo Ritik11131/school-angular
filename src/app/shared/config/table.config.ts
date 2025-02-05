@@ -121,10 +121,11 @@ export const dashboardTableConfig: TableConfig = {
 
   export const plansTableConfig: TableConfig = {
     columns: [
-      { field: 'name', header: 'Crew Name', },
-      { field: 'role', header: 'Role', displayType: 'chip' },
-      { field: 'licenseNumber', header: 'License Number', },
-      { field: 'contactNumber', header: 'Contact Number', },
+      { field: 'name', header: 'Plan Name', },
+      { field: 'price', header: 'Price', },
+      { field: 'currency', header: 'Currency', displayType:'chip' },
+      { field: 'days', header: 'Days', displayType:'chip' },
+      { field: 'description', header: 'Description' },
     ],
     toolbar: {
       showNew: true,
