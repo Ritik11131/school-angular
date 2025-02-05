@@ -28,29 +28,36 @@ export const apiInterceptor: HttpInterceptorFn = (req, next) => {
         try {
           // Call the refresh token API with async/await
           const response = await authService.refreshToken();
-  
-          // Update the local storage with the new token
-          authService.setAuthTokens(response.data);
-  
-          // Clone the original request with the new token
-          const newAuthReq = req.clone({
-            setHeaders: {
-              Authorization: `${authService.getTokenType()} ${authService.getToken()}` || 'Token Not Found', // Use Bearer token format
-            },
-          });
-  
-          // Retry the original request with the new token
-          return lastValueFrom(next(newAuthReq)); // Convert observable to promise
+
+          if (response) {
+            // Update the local storage with the new token
+            authService.setAuthTokens(response.data);
+            
+            // Clone the original request with the new token
+            const newAuthReq = req.clone({
+              setHeaders: {
+                Authorization: `${authService.getTokenType()} ${authService.getToken()}` || 'Token Not Found', // Use Bearer token format
+              },
+            });
+            
+            // Retry the original request with the new token
+            return lastValueFrom(next(newAuthReq)); // Convert observable to promise
+          } else {
+            // If the refresh token API returns no response, log the user out
+            authService.logout();
+            router.navigateByUrl('/auth/login');
+            throw new Error('Refresh token failed: No response');
+          }
         } catch (refreshError: any) {
           console.log(refreshError, 'refreshError');
   
           // If the refresh token API also fails with 401, log the user out
           if (refreshError.status === 401) {
-           authService.logout();
-           router.navigateByUrl('/auth/login');
+            authService.logout();
+            router.navigateByUrl('/auth/login');
           }
   
-          // Rethrow the refresh error
+          // Rethrow the refresh error to stop further retries
           throw refreshError;
         }
       }
@@ -58,6 +65,6 @@ export const apiInterceptor: HttpInterceptorFn = (req, next) => {
       // If the error is not a 401, just throw the error as it is
       throw error;
     })
-  );
+);
   
 };
