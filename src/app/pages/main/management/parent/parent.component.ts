@@ -7,6 +7,7 @@ import { parentTableConfig } from '@/app/shared/config/table.config';
 import { SAMPLE_FILE_ENDPOINT, SAMPLE_FILENAME } from '@/app/shared/constants/endpoint';
 import { NEW_PARENT_FORM_JSON } from '@/app/shared/constants/parent';
 import { IMutateParent, IParent } from '@/app/shared/interfaces/parent.interfaces';
+import { IMutateRoute } from '@/app/shared/interfaces/route.interfaces';
 import { TableConfig } from '@/app/shared/interfaces/table.interface';
 import { Component, signal, TemplateRef, ViewChild } from '@angular/core';
 
@@ -22,6 +23,7 @@ export class ParentComponent {
   tableConfig: TableConfig = parentTableConfig;
   tableData: IParent[] = [];
   loading: boolean = false;
+  editObj: IMutateParent | null = null;
   parentFormFields = signal<FormField[]>(NEW_PARENT_FORM_JSON);
 
   constructor(private parentService: ParentService, private uiService: UiService,private httpService:HttpService) { }
@@ -53,20 +55,41 @@ export class ParentComponent {
   }
 
   handleEditParent(parent: IParent) {
+    console.log(parent);
+    const {id, name, registeredMobileNo} = parent;
+    this.editObj = {
+      id,
+      name,
+      registeredMobileNo,
+    }
     this.uiService.openDrawer(this.createParentContent, "Edit Parent");
   }
 
   async handleFormSubmit(formData: FormData): Promise<void> {
     console.log('Form submitted:', formData);
-    try {
-      const response = await this.parentService.createParent({...formData, attribute: JSON.stringify({})} as IMutateParent);
-      console.log(response);
-      this.uiService.closeDrawer();
-      this.uiService.showToast('success', 'Success', 'Parent created successfully');
-      this.loadParentService();
-    } catch (error: any) {
-      console.log(error);
-      this.uiService.showToast('error', 'Error', 'Failed to create parent');
+
+    if (this.editObj) {
+      try {
+        const response = await this.parentService.updateParent(this.editObj.id, { id:this.editObj?.id, ...formData, attribute: JSON.stringify({}) } as IMutateParent);
+        console.log(response);
+        this.uiService.closeDrawer();
+        this.uiService.showToast('success', 'Success', 'Parent updated successfully');
+        this.loadParentService();
+      } catch (error: any) {
+        console.log(error);
+        this.uiService.showToast('error', 'Error', 'Failed to update parent');
+      }
+    } else {
+      try {
+        const response = await this.parentService.createParent({ ...formData, attribute: JSON.stringify({}) } as IMutateParent);
+        console.log(response);
+        this.uiService.closeDrawer();
+        this.uiService.showToast('success', 'Success', 'Parent created successfully');
+        this.loadParentService();
+      } catch (error: any) {
+        console.log(error);
+        this.uiService.showToast('error', 'Error', 'Failed to create parent');
+      }
     }
   }
 
@@ -129,6 +152,8 @@ export class ParentComponent {
       this.uiService.showToast('error', 'Error', 'Failed to download sample file');
     }
   }
+
+  
 
 
 }

@@ -136,6 +136,9 @@
           <th style="width: 3rem">
             <p-tableHeaderCheckbox />
           </th>
+        } @else {
+          <th style="width: 3rem">
+          </th>
         }
         @if(config.expandable) {
           <th style="width: 5rem"></th>
@@ -165,6 +168,10 @@
         @if (config.selectionMode === 'multiple') {
           <td>
             <p-tableCheckbox [value]="item" />
+          </td>
+        } @else {
+          <td>
+            <p-tableRadioButton [value]="item" />
           </td>
         }
 

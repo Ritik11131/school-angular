@@ -7,6 +7,7 @@ export interface IParent {
 }
 
 export interface IMutateParent {
+    id?: any; // Optional for create operation
     name: string;
     // username: string;
     // email: string;

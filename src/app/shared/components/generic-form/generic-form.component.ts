@@ -36,6 +36,16 @@ export class GenericFormComponent implements OnInit {
     this.formFields.set(value);
   }
 
+  @Input() set editObj(value: FormData | null) {
+    console.log(value);
+    
+  this._editObj = value;
+  if (this.form) {
+    this.patchForm();
+  }
+}
+private _editObj: FormData | null = null;
+
   @Output() formSubmit = new EventEmitter<FormData>();
 
   formFields = signal<FormField[]>([])
@@ -50,12 +60,23 @@ export class GenericFormComponent implements OnInit {
   }
 
   initForm() {
-    const formGroup: any = {}
-    this.formFields().forEach((field) => {
-      formGroup[field.name] = ["", field.isRequired ? Validators.required : []]
-    })
-    this.form = this.formbuilder.group(formGroup)
+  const formGroup: any = {};
+
+  this.formFields().forEach((field) => {
+    const defaultValue = this._editObj?.[field.name] ?? '';
+    formGroup[field.name] = [defaultValue, field.isRequired ? Validators.required : []];
+  });
+
+  this.form = this.formbuilder.group(formGroup);
+}
+
+patchForm() {
+  console.log(this._editObj);
+  
+  if (this._editObj) {
+    this.form.patchValue(this._editObj);
   }
+}
 
   onSubmit() {
     if (this.form.valid) {

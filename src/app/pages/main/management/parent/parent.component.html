@@ -7,5 +7,5 @@
 
 <ng-template #createParentContent>
     <h3 class="text-xl font-semibold mb-4 text-muted-color-emphasis">Create a Parent</h3>
-    <app-generic-form [fields]="parentFormFields()" (formSubmit)="handleFormSubmit($event)"></app-generic-form>
+    <app-generic-form [fields]="parentFormFields()" [editObj]="editObj" (formSubmit)="handleFormSubmit($event)"></app-generic-form>
 </ng-template>

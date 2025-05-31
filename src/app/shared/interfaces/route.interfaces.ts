@@ -37,6 +37,7 @@ export interface IRoute {
 
 
   export interface IMutateRoute {
+    id?: any; // Optional for create operation
     routeName:string;
     routeDirection: string; // Union type for fixed values
     geojson: string;

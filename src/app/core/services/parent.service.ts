@@ -1,7 +1,7 @@
 import { Injectable } from '@angular/core';
 import { HttpService } from './http.service';
 import { IResponse } from '@/app/shared/interfaces/api.interfaces';
-import { CREATE_PARENT_ENDPOINT, GET_PARENT_LIST_ENDPOINT } from '@/app/shared/constants/endpoint';
+import { CREATE_PARENT_ENDPOINT, GET_PARENT_LIST_ENDPOINT, UPDATE_PARENT_ENDPOINT } from '@/app/shared/constants/endpoint';
 import { IMutateParent, IParent } from '@/app/shared/interfaces/parent.interfaces';
 
 @Injectable({
@@ -19,5 +19,9 @@ export class ParentService {
   
     async createParent(data: IMutateParent): Promise<IResponse> {
       return this.httpService.post<IResponse>(CREATE_PARENT_ENDPOINT, data);
+    }
+
+    async updateParent(id:any, data: IMutateParent): Promise<IResponse> {
+      return this.httpService.put<IResponse>(UPDATE_PARENT_ENDPOINT, id, data);
     }
 }
