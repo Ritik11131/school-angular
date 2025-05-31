@@ -39,7 +39,7 @@ interface RouteData {
           [class.tool-btn-active]="currentTool === 'linestring'"
           (click)="setTool('linestring')"
           title="Draw LineString">
-          <i class="pi pi-share-alt text-lg"></i>
+          <i class="pi pi-arrow-up-right-and-arrow-down-left-from-center text-lg"></i>
         </button>
       </div>
       

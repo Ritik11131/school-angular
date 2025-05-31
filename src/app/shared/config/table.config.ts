@@ -98,7 +98,6 @@ export const dashboardTableConfig: TableConfig = {
     ],
     toolbar: {
       showNew: true,
-      showEdit: true,
     },
     // actions: {
     //   customButtons: [
