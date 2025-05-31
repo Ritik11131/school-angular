@@ -26,105 +26,77 @@ export class ParentComponent {
   editObj: IMutateParent | null = null;
   parentFormFields = signal<FormField[]>(NEW_PARENT_FORM_JSON);
 
-  constructor(private parentService: ParentService, private uiService: UiService,private httpService:HttpService) { }
+  constructor(private parentService: ParentService, private uiService: UiService, private httpService: HttpService) {}
 
   ngOnInit(): void {
     this.loadParentService();
   }
 
-
   async loadParentService() {
     await this.operateParentList();
   }
-
 
   async operateParentList() {
     this.loading = true;
     try {
       const data: IParent[] = await this.parentService.getParentList();
       this.tableData = data;
-      this.loading = false;
     } catch (error) {
       this.uiService.showToast('error', 'Error', 'Failed to fetch parent list');
+    } finally {
       this.loading = false;
     }
   }
 
   handleNewParent() {
+    this.editObj = null;
     this.uiService.openDrawer(this.createParentContent, "Parent Management");
   }
 
   handleEditParent(parent: IParent) {
-    console.log(parent);
-    const {id, name, registeredMobileNo} = parent;
-    this.editObj = {
-      id,
-      name,
-      registeredMobileNo,
-    }
+    const { id, name, registeredMobileNo } = parent;
+    this.editObj = { id, name, registeredMobileNo };
     this.uiService.openDrawer(this.createParentContent, "Edit Parent");
   }
 
   async handleFormSubmit(formData: FormData): Promise<void> {
-    console.log('Form submitted:', formData);
-
-    if (this.editObj) {
-      try {
-        const response = await this.parentService.updateParent(this.editObj.id, { id:this.editObj?.id, ...formData, attribute: JSON.stringify({}) } as IMutateParent);
-        console.log(response);
-        this.uiService.closeDrawer();
+    try {
+      if (this.editObj) {
+        await this.parentService.updateParent(this.editObj.id, {
+          id: this.editObj.id,
+          ...formData,
+          attribute: JSON.stringify({})
+        } as IMutateParent);
         this.uiService.showToast('success', 'Success', 'Parent updated successfully');
-        this.loadParentService();
-      } catch (error: any) {
-        console.log(error);
-        this.uiService.showToast('error', 'Error', 'Failed to update parent');
-      }
-    } else {
-      try {
-        const response = await this.parentService.createParent({ ...formData, attribute: JSON.stringify({}) } as IMutateParent);
-        console.log(response);
-        this.uiService.closeDrawer();
+      } else {
+        await this.parentService.createParent({
+          ...formData,
+          attribute: JSON.stringify({})
+        } as IMutateParent);
         this.uiService.showToast('success', 'Success', 'Parent created successfully');
-        this.loadParentService();
-      } catch (error: any) {
-        console.log(error);
-        this.uiService.showToast('error', 'Error', 'Failed to create parent');
       }
+      this.resetState();
+    } catch (error: any) {
+      this.uiService.showToast('error', 'Error', `Failed to ${this.editObj ? 'update' : 'create'} parent`);
     }
   }
 
-
-  /**
-   * Handles file upload.
-   *
-   * @param event The file input change event.
-   */
   async onFileUpload(event: any): Promise<void> {
     if (event.currentFiles && event.currentFiles.length > 0) {
       const file = event.currentFiles[0];
-
       this.uiService.showToast('info', 'Info', 'Uploading file...');
 
       try {
-        const response = await this.httpService.uploadFile('bulk/parents/create', file);
+        await this.httpService.uploadFile('bulk/parents/create', file);
         this.uiService.showToast('success', 'Success', 'File uploaded successfully');
-        console.log('Upload response:', response);
+        this.resetState();
       } catch (error) {
         this.uiService.showToast('error', 'Error', 'Failed to upload file');
-        console.error('Upload failed:', error);
       }
     }
   }
 
-
-  /**
-     * Handles toolbar custom action clicks.
-     *
-     * @param action - The action object containing the action type.
-     */
-  async handleToolbarCustomActionClicked(action : { action:any; event?:any  }): Promise<void> {
-    console.log('Toolbar custom action clicked:', action);
-
+  async handleToolbarCustomActionClicked(action: { action: any; event?: any }): Promise<void> {
     switch (action.action) {
       case 'download_sample_file':
         await this.handleSampleOperation();
@@ -138,22 +110,23 @@ export class ParentComponent {
     }
   }
 
-  /**
-   * Handles the sample file download operation.
-   */
   private async handleSampleOperation(): Promise<void> {
     this.uiService.showToast('info', 'Info', 'Exporting Sample Data...');
-
     try {
       await this.httpService.downloadFile(SAMPLE_FILE_ENDPOINT, SAMPLE_FILENAME);
       this.uiService.showToast('success', 'Success', 'Sample file downloaded successfully');
     } catch (error) {
-      console.error('Failed to download sample file:', error);
       this.uiService.showToast('error', 'Error', 'Failed to download sample file');
     }
   }
 
-  
-
-
+  /**
+   * Resets component state after successful actions.
+   */
+  private async resetState(): Promise<void> {
+    this.editObj = null;
+    this.parentFormFields.set(NEW_PARENT_FORM_JSON); // reset form fields
+    this.uiService.closeDrawer();                    // close drawer
+    await this.loadParentService();                  // refresh table
+  }
 }
