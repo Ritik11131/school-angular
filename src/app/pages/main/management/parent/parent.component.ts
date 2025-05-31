@@ -52,10 +52,14 @@ export class ParentComponent {
     this.uiService.openDrawer(this.createParentContent, "Parent Management");
   }
 
+  handleEditParent(parent: IParent) {
+    this.uiService.openDrawer(this.createParentContent, "Edit Parent");
+  }
+
   async handleFormSubmit(formData: FormData): Promise<void> {
     console.log('Form submitted:', formData);
     try {
-      const response = await this.parentService.createParent(formData as IMutateParent);
+      const response = await this.parentService.createParent({...formData, attribute: JSON.stringify({})} as IMutateParent);
       console.log(response);
       this.uiService.closeDrawer();
       this.uiService.showToast('success', 'Success', 'Parent created successfully');

@@ -1,21 +1,25 @@
 import { RouteService } from '@/app/core/services/route.service';
 import { UiService } from '@/app/core/services/ui.service';
+import { FormData, FormField, GenericFormComponent } from '@/app/shared/components/generic-form/generic-form.component';
 import { GenericTableComponent } from '@/app/shared/components/generic-table/generic-table.component';
 import { routeTableConfig } from '@/app/shared/config/table.config';
-import { IRoute } from '@/app/shared/interfaces/route.interfaces';
+import { NEW_ROUTE_FORM_JSON } from '@/app/shared/constants/route';
+import { IMutateRoute, IRoute } from '@/app/shared/interfaces/route.interfaces';
 import { TableConfig } from '@/app/shared/interfaces/table.interface';
-import { Component, TemplateRef, ViewChild } from '@angular/core';
+import { Component, signal, TemplateRef, ViewChild } from '@angular/core';
 import { LeafletModule } from '@bluehalo/ngx-leaflet';
 import * as L from 'leaflet';
 import { latLng, Map, tileLayer } from 'leaflet';
+import { RouteCreatorComponent } from "../../../../shared/components/route-creator/route-creator.component";
 
 @Component({
   selector: 'app-route',
-  imports: [GenericTableComponent, LeafletModule],
+  imports: [GenericTableComponent, GenericFormComponent, LeafletModule, RouteCreatorComponent],
   templateUrl: './route.component.html',
   styleUrl: './route.component.css'
 })
 export class RouteComponent {
+  @ViewChild("createRouteContent") createRouteContent!: TemplateRef<any>;
   @ViewChild("viewRouteContent") viewRouteContent!: TemplateRef<any>;
 
   map!: Map;
@@ -33,6 +37,9 @@ export class RouteComponent {
     center: latLng(27.54095593, 79.16035184)
   };
   selectedRoute: IRoute | null = null;
+  routeFormFields = signal<FormField[]>(NEW_ROUTE_FORM_JSON);
+  currentCreatedRouteObject!: { geoJson: any, routeData: any };
+  
 
   constructor(private routeService: RouteService, private uiService: UiService) { }
 
@@ -129,5 +136,39 @@ export class RouteComponent {
         break;
     }
   }
+
+  async handleNewRoute() {
+    this.uiService.openDrawer(this.createRouteContent, 'Create Route');
+  }
+
+  async handleFormSubmit(formData: FormData): Promise<void> {
+    console.log('Form submitted:', formData);
+    this.loading = true;
+    const routeObj: IMutateRoute = {
+      routeName: formData['routeName'],
+      routeDirection: formData['routeDirection'], // Assuming this is a string like "UP" or "DOWN"
+      geojson: JSON.stringify(this.currentCreatedRouteObject?.geoJson || {}), // Assuming this is the GeoJSON object
+      attribute: JSON.stringify(this.currentCreatedRouteObject?.routeData || {}) // Assuming you want to send an empty attribute object
+      
+    }
+    try {
+      const response = await this.routeService.createRoute(routeObj);
+      console.log(response);
+      this.uiService.closeDrawer();
+      this.uiService.showToast('success', 'Success', 'Route created successfully');
+      await this.operateRouteList();
+    } catch (error: any) {
+      console.log(error);
+      this.uiService.showToast('error', 'Error', 'Failed to create route');
+    } finally {
+      this.loading = false;
+    }
+    
+  }
+
+  async handleRouteCreated(route: any): Promise<void> {
+  console.log('Received GeoJSON:', route);
+  this.currentCreatedRouteObject = route;
+}
 
 }

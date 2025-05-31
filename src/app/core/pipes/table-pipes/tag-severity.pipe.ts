@@ -17,6 +17,6 @@ export class TagSeverityPipe implements PipeTransform {
           return 'contrast';
       }
     }
-    return 'success';
+    return 'grey';
   }
 }

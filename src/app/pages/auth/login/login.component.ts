@@ -24,7 +24,7 @@ import { UiService } from '@/app/core/services/ui.service';
 })
 export class LoginComponent implements OnInit {
 
-  email: string = '9827786794';
+  email: string = '8826598066';
   password: string = '123456';
   emailError: string = '';
   passwordError: string = '';

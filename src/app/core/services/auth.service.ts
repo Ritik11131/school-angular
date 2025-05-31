@@ -19,14 +19,11 @@ export class AuthService {
    * @param password The password of the user.
    * @returns A promise that resolves to the authentication response.
    */
-  async login(username: string, password: string): Promise<IResponse> {
+  async login(registeredMobileNo: string, password: string): Promise<IResponse> {
     const data = {
-        audience: 'web',
-        grantType: "PASSWORD",
-        clientId: environment.CLIENT_ID,
-        clientSecret: environment.CLIENT_SECRET,
-        username,
+        registeredMobileNo,
         password,
+        attribute : JSON.stringify( { fcmToken:'fcm' } )
       };
     const response: IResponse  = await this.httpService.post<IResponse>(LOGIN_ENDPOINT, data, true);
     this.setAuthTokens(response.data); // Assuming the response contains a token
@@ -57,10 +54,10 @@ export class AuthService {
    * @param token The token to set.
    */
   public setAuthTokens(loginResponse: ILogin): void {
-    this.token = loginResponse.accessToken;
-    localStorage.setItem('access_token', loginResponse.accessToken);
-    localStorage.setItem('refresh_token', loginResponse.refreshToken);
-    localStorage.setItem('type', loginResponse.type);
+    this.token = loginResponse.token;
+    localStorage.setItem('access_token', loginResponse.token);
+    // localStorage.setItem('refresh_token', loginResponse.refreshToken);
+    // localStorage.setItem('type', loginResponse.type);
   }
 
   /**

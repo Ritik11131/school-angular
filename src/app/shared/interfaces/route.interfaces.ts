@@ -34,5 +34,13 @@ export interface IRoute {
       }[];
     }; // Optional for route fetch data
   }
+
+
+  export interface IMutateRoute {
+    routeName:string;
+    routeDirection: string; // Union type for fixed values
+    geojson: string;
+    attribute: string;
+  }
   
   

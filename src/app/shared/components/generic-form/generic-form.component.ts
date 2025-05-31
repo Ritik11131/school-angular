@@ -75,6 +75,6 @@ export class GenericFormComponent implements OnInit {
         return field.validate ? field.validate(control.value || '') || "" : ""
       }
     }
-    return ""
+    return "";
   }
 }

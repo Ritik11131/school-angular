@@ -49,13 +49,13 @@ export class GenericTableComponent {
   @Input() config!: TableConfig;
   @Input() globalFilterFields!: any[];
   @Input() title: string = '';
-  @Input() showActions: boolean = true;
+  @Input() showActions: boolean = false;
   @Input() showSummary: boolean = true;
   @Input() activeOnes = '';
   @Input() expandedRows: any = {}; // Expanded rows
 
   @Output() onNew = new EventEmitter<boolean>();
-  // @Output() onEdit = new EventEmitter<any>();
+  @Output() onEdit = new EventEmitter<any>();
   @Output() onDelete = new EventEmitter<any>();
   @Output() onDeleteSelected = new EventEmitter<any[]>();
   @Output() onImport = new EventEmitter<any>();

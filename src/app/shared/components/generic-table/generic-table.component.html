@@ -9,6 +9,14 @@
             (onClick)="onNew.emit(true)"
           />
         }
+         @if(config.toolbar?.showEdit) {
+              <p-button
+              [label]="'Edit'"
+              icon="pi pi-pen-to-square"
+              class="mr-2"
+              (click)="onEdit.emit(selectedItems)"
+              />
+            }
         @if (config.toolbar?.showDelete) {
           <p-button
             severity="danger"

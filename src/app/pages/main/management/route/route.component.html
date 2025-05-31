@@ -1,13 +1,18 @@
 <div class="border border-surface rounded-2xl p-5">
-    <app-generic-table [data]="tableData" [config]="tableConfig" title="Route" [showActions]="true" [loading]="loading"
-        [activeOnes]="'0 Routes'" (configActionClicked)="handleConfigActionClicked($event)">
+    <app-generic-table [data]="tableData" [config]="tableConfig" title="Route" [loading]="loading"
+        [activeOnes]="'0 Routes'" (onNew)="handleNewRoute()" (configActionClicked)="handleConfigActionClicked($event)">
     </app-generic-table>
 </div>
 
 
+<ng-template #createRouteContent>
+    <h3 class="text-xl font-semibold mb-4 text-muted-color-emphasis">Create a Route</h3>
+    <app-route-creator (routeDataChanged)="handleRouteCreated($event)"/>
+    <app-generic-form [fields]="routeFormFields()" (formSubmit)="handleFormSubmit($event)"></app-generic-form>
+</ng-template>
+
 <ng-template #viewRouteContent>
     <h3 class="text-xl font-semibold mb-4 text-muted-color-emphasis">{{selectedRoute?.name}}</h3>
-    <div class="h-[600px] w-ful rounded-lg" leaflet [leafletOptions]="mapOptions" (leafletMapReady)="onMapReady($event)">
-    </div>
-
+    <!-- <div class="h-[600px] w-ful rounded-lg" leaflet [leafletOptions]="mapOptions" (leafletMapReady)="onMapReady($event)">
+    </div> -->
 </ng-template>

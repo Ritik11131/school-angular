@@ -47,14 +47,15 @@ export const dashboardTableConfig: TableConfig = {
     columns: [
       { field: 'name', header: 'Parent Name', },
       { field: 'email', header: 'Email', },
-      { field: 'contactNumber', header: 'Contact Number', },
-      { field: 'emergencyContact', header: 'Emergency Number', },
+      { field: 'registeredMobileNo', header: 'Contact Number', },
+      // { field: 'emergencyContact', header: 'Emergency Number', },
       { field: 'smsEnabled', header: 'Sms', displayType: 'icon'},
       { field: 'pushEnabled', header: 'Push', displayType: 'icon'},
       { field: 'isActive', header: 'Status', displayType: 'chip' },
     ],
     toolbar: {
       showNew: true,
+      showEdit: true,
       showExport: true,
       customButtons: [
         {
@@ -77,7 +78,7 @@ export const dashboardTableConfig: TableConfig = {
     },
     paginator: true,
     globalFilter: true,
-    selectionMode: 'single',
+    selectionMode: 'multiple',
     minWidth:'75rem',
     showCurrentPageReport: true,
     rowHover: true,
@@ -86,32 +87,33 @@ export const dashboardTableConfig: TableConfig = {
 
   export const routeTableConfig: TableConfig = {
     columns: [
-      { field: 'name', header: 'Route Name', },
-      { field: 'type', header: 'Type', },
-      { field: 'description', header: 'Description', },
-      { field: 'distanceM', header: 'Distance (m)', },
-      { field: 'startTime', header: 'Start Time', },
-      { field: 'endTime', header: 'End Time', },
-      { field: 'startCoordinates', header: 'Start Coordinates', },
-      { field: 'endCoordinates', header: 'End Coordinates', },
+      { field: 'routeName', header: 'Route Name', },
+      { field: 'routeDirection', header: 'Type', },
+      // { field: 'description', header: 'Description', },
+      // { field: 'distanceM', header: 'Distance (m)', },
+      // { field: 'startTime', header: 'Start Time', },
+      // { field: 'endTime', header: 'End Time', },
+      // { field: 'startCoordinates', header: 'Start Coordinates', },
+      // { field: 'endCoordinates', header: 'End Coordinates', },
     ],
     toolbar: {
       showNew: true,
+      showEdit: true,
     },
-    actions: {
-      customButtons: [
-        {
-          id: 1,
-          key: 'view',
-          tooltip: 'View Route',
-          icon: 'pi pi-eye',
-          severity: 'contrast'
-        },
-      ]
-    },
+    // actions: {
+    //   customButtons: [
+    //     {
+    //       id: 1,
+    //       key: 'view',
+    //       tooltip: 'View Route',
+    //       icon: 'pi pi-eye',
+    //       severity: 'contrast'
+    //     },
+    //   ]
+    // },
     paginator: true,
     globalFilter: true,
-    selectionMode: 'single',
+    selectionMode: 'multiple',
     minWidth:'75rem',
     showCurrentPageReport: true,
     rowHover: true,

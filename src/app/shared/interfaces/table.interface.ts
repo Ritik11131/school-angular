@@ -17,6 +17,7 @@ export interface ColumnConfig {
   
   export interface ToolbarConfig {
     showNew?: boolean;
+    showEdit?: boolean;
     showDelete?: boolean;
     showImport?: boolean;
     showExport?: boolean;
