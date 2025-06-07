@@ -2,7 +2,7 @@ import { Injectable } from '@angular/core';
 import { HttpService } from './http.service';
 import { IMutatePlan, IPlan } from '@/app/shared/interfaces/plans.interfaces';
 import { IResponse } from '@/app/shared/interfaces/api.interfaces';
-import { CREATE_PLAN_ENDPOINT, GET_PLAN_LIST_ENDPOINT } from '@/app/shared/constants/endpoint';
+import { CREATE_PLAN_ENDPOINT, GET_PLAN_LIST_ENDPOINT, UPDATE_PLAN_ENDPOINT } from '@/app/shared/constants/endpoint';
 
 @Injectable({
   providedIn: 'root'
@@ -20,4 +20,8 @@ export class PlansService {
     async createPlan(data: IMutatePlan): Promise<IResponse> {
       return this.httpService.post<IResponse>(CREATE_PLAN_ENDPOINT, data);
     }
+
+  async updateParent(id: any, data: IMutatePlan): Promise<IResponse> {
+    return this.httpService.put<IResponse>(UPDATE_PLAN_ENDPOINT, id, data);
+  }
 }

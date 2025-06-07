@@ -1,16 +1,16 @@
 export interface IPlan {
     id:number;
-    name: string;
-    description: string;
-    price: number;
-    currency: string;
-    days: number;
+    planName: string;
+    planRate: number;
+    gatewayFees: number;
+    gstRate: number;
 }
 
 export interface IMutatePlan {
-    name: string;
-    description: string;
-    price: number;
-    currency: string;
-    days: number;
+    id?: any; // Optional for create operation
+    planName: string;
+    planRate: number;
+    gatewayFees: number;
+    gstRate: number;
+    attribute?: string; // Optional attribute for additional data, stored as JSON string
 }

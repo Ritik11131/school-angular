@@ -32,5 +32,6 @@ export const CREATE_ROUTE_ENDPOINT = 'LivetrackVts/Route/create';
 export const GET_ROUTE_BY_ID_ENDPOINT = 'LivetrackVts/Route/GetById';
 
 // Plan Endpoints
-export const GET_PLAN_LIST_ENDPOINT = 'plans/list';
-export const CREATE_PLAN_ENDPOINT = 'plans/create'
+export const GET_PLAN_LIST_ENDPOINT = 'LivetrackVts/SchoolPlan/list';
+export const CREATE_PLAN_ENDPOINT = 'LivetrackVts/SchoolPlan/create';
+export const UPDATE_PLAN_ENDPOINT = 'LivetrackVts/SchoolPlan/update';

@@ -142,14 +142,14 @@ export const dashboardTableConfig: TableConfig = {
 
   export const plansTableConfig: TableConfig = {
     columns: [
-      { field: 'name', header: 'Plan Name', },
-      { field: 'price', header: 'Price', },
-      { field: 'currency', header: 'Currency', displayType:'chip' },
-      { field: 'days', header: 'Days', displayType:'chip' },
-      { field: 'description', header: 'Description' },
+      { field: 'planName', header: 'Name', },
+      { field: 'planRate', header: 'Rate', },
+      { field: 'gatewayFees', header: 'Gateway Fees', displayType:'chip' },
     ],
     toolbar: {
       showNew: true,
+      showEdit: true,
+      showExport: true,
     },
     paginator: true,
     globalFilter: true,

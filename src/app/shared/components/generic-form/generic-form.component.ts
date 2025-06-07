@@ -54,17 +54,16 @@ export class GenericFormComponent implements OnInit {
   }
 
   @Input() set editObj(value: FormData | null) {
-    console.log(value);
-    
-  this._editObj = value;
-  if (this.form) {
-    this.patchForm();
+    console.log('Setting editObj:', value);
+    this._editObj = value;
+    if (this.form) {
+      this.patchForm();
+    }
   }
-}
 
   @Input() editMode = false;
 
-private _editObj: FormData | null = null;
+  private _editObj: FormData | null = null;
 
   @Output() formSubmit = new EventEmitter<FormData>();
 
@@ -74,8 +73,6 @@ private _editObj: FormData | null = null;
   sliderValue: number = 0
   dropdownParams: { [key: string]: any } = {};
 
-
-
   constructor(private formbuilder: FormBuilder) {}
 
   ngOnInit() {
@@ -83,29 +80,34 @@ private _editObj: FormData | null = null;
   }
 
   initForm() {
-  const formGroup: any = {};
+    const formGroup: any = {};
 
-  this.formFields().forEach((field) => {
-    const defaultValue = this._editObj?.[field.name] ?? '';
-    formGroup[field.name] = [defaultValue, field.isRequired ? Validators.required : []];
-  });
+    this.formFields().forEach((field) => {
+      const defaultValue = this._editObj?.[field.name] ?? '';
+      formGroup[field.name] = [defaultValue, field.isRequired ? Validators.required : []];
+    });
 
-  this.form = this.formbuilder.group(formGroup);
-}
-
-patchForm() {
-  console.log(this._editObj);
-  
-  if (this._editObj) {
-    this.form.patchValue(this._editObj);
+    this.form = this.formbuilder.group(formGroup);
+    
+    // Setup dependent dropdowns after form is created
+    if (this._editObj) {
+      this.patchForm();
+    }
   }
-}
+
+  patchForm() {
+    console.log('Patching form with edit object:', this._editObj);
+    
+    if (this._editObj) {
+      this.form.patchValue(this._editObj);
+      this.setupDependentDropdowns();
+    }
+  }
 
   onSubmit() {
     if (this.form.valid) {
       console.log(this.form.value);
       this.formSubmit.emit(this.form.value as FormData);
-      // Here you would typically send the form data to your backend
     } else {
       this.form.markAllAsTouched()
     }
@@ -123,47 +125,75 @@ patchForm() {
   }
 
   onDropdownSelect(selectedValue: any, fieldId: string) {
-        // Set form value - store the complete selected object
-        this.form.get(fieldId)?.setValue(selectedValue);
+    // Set form value - store the complete selected object
+    this.form.get(fieldId)?.setValue(selectedValue);
 
-        // Handle dependent dropdowns
-        this.updateDependentFields(fieldId, selectedValue);
-    }
+    // Handle dependent dropdowns
+    this.updateDependentFields(fieldId, selectedValue);
+  }
 
-
-    updateDependentFields(fieldId: string, selectedValue: any) {
-    // Extract the ID from the selected value
-    console.log(selectedValue, fieldId);
+  updateDependentFields(fieldId: string, selectedValue: any) {
+    console.log('Updating dependent fields for:', fieldId, 'with value:', selectedValue);
 
     let paramValue: any = null;
 
     if (selectedValue) {
-        // Handle different object structures
-        if (typeof selectedValue === 'object') {
-            paramValue = selectedValue.id || selectedValue.value;
-        } else {
-            paramValue = selectedValue;
-        }
+      // Handle different object structures
+      if (typeof selectedValue === 'object') {
+        paramValue = selectedValue.id || selectedValue.value;
+      } else {
+        paramValue = selectedValue;
+      }
     }
 
     // Find fields that depend on this field
     this.formFields().forEach((field) => {
-        if (field.dropdown?.dependsOn === fieldId) {
-            // Reset the dependent form control
-            this.form.get(field.name)?.reset();
+      if (field.dropdown?.dependsOn === fieldId) {
+        // Reset the dependent form control
+        this.form.get(field.name)?.reset();
 
-            // Set API params for the dependent dropdown
-            if (paramValue) {
-                // Use the original fieldId as parameter name
-                this.dropdownParams[field.name] = { [fieldId]: paramValue };
-            } else {
-                // Clear params when parent value is cleared
-                this.dropdownParams[field.name] = {};
-            }
-
-            // Clear any nested dependents recursively
-            this.updateDependentFields(field.name, null);
+        // Set API params for the dependent dropdown
+        if (paramValue) {
+          this.dropdownParams[field.name] = { [fieldId]: paramValue };
+        } else {
+          // Clear params when parent value is cleared
+          this.dropdownParams[field.name] = {};
         }
+
+        // Clear any nested dependents recursively
+        this.updateDependentFields(field.name, null);
+      }
     });
-}
+  }
+
+  private setupDependentDropdowns() {
+    console.log('Setting up dependent dropdowns with editObj:', this._editObj);
+    
+    this.formFields().forEach((field) => {
+      console.log('Processing field:', field.name, 'type:', field.type);
+      
+      if (field.type === 'dropdown' && field?.dropdown?.dependsOn) {
+        const parentField = field.dropdown.dependsOn;
+        console.log('Found dependent dropdown:', field.name, 'depends on:', parentField);
+        
+        if (this._editObj && this._editObj[parentField]) {
+          // Extract the parent value - handle both object and primitive types
+          let parentValue: any = this._editObj[parentField];
+          console.log('Parent value before processing:', parentValue);
+          
+          if (typeof parentValue === 'object' && parentValue !== null) {
+            parentValue = parentValue.id || parentValue.value || parentValue;
+          }
+          
+          console.log('Parent value after processing:', parentValue);
+          
+          // Set the dropdown parameters for this dependent field
+          this.dropdownParams[field.name] = parentValue ? { [parentField]: parentValue } : {};
+          console.log('Set dropdown params for', field.name, ':', this.dropdownParams[field.name]);
+        }
+      }
+    });
+
+    console.log("Final Dropdown Params:", this.dropdownParams);
+  }
 }
