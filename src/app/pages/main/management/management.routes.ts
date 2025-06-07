@@ -12,6 +12,10 @@ export const managementRoutes: Routes = [
         component: CrewComponent
     },
     {
+        path: 'student',
+        component: StudentComponent
+    },
+    {
         path: 'parent',
         component: ParentComponent
     },

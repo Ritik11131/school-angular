@@ -138,7 +138,7 @@ export class RouteComponent {
   }
 
   async handleNewRoute() {
-    this.uiService.openDrawer(this.createRouteContent, 'Create Route');
+    this.uiService.openDrawer(this.createRouteContent, 'Create Route', '!w-[98vw] rounded-l-2xl');
   }
 
   async handleFormSubmit(formData: FormData): Promise<void> {

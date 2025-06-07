@@ -1,1 +1,11 @@
-<p>student works!</p>
+<div class="border border-surface rounded-2xl p-5">
+    <app-generic-table [data]="tableData" [config]="tableConfig" title="Student" [showActions]="false" [loading]="loading" [activeOnes]="'0 Student'"
+     (onNew)="handleNewStudent()" (onEdit)="handleEditStudent($event)" (toolbarCustomActionClicked)="handleToolbarCustomActionClicked($event)">
+    </app-generic-table>
+</div>
+
+
+<ng-template #createStudentContent>
+    <h3 class="text-xl font-semibold mb-4 text-muted-color-emphasis">Create a Parent</h3>
+    <app-generic-form [fields]="studentFormFields()" [editObj]="editObj" (formSubmit)="handleFormSubmit($event)"></app-generic-form>
+</ng-template>

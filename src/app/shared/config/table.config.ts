@@ -42,6 +42,26 @@ export const dashboardTableConfig: TableConfig = {
     responsive: true
   };
 
+  export const studentTableConfig: TableConfig = {
+    columns: [
+      { field: 'studentName', header: 'Student Name', },
+      { field: 'registeredDate', header: 'Registered Date', displayType: 'date' },
+     
+    ],
+    toolbar: {
+      showNew: true,
+       showEdit: true,
+      showExport: true,
+    },
+    paginator: true,
+    globalFilter: true,
+    selectionMode: 'single',
+    minWidth:'75rem',
+    showCurrentPageReport: true,
+    rowHover: true,
+    responsive: true
+  };
+
 
   export const parentTableConfig: TableConfig = {
     columns: [

@@ -14,6 +14,7 @@ export class GenericDrawerComponent {
 
   @Input() isOpen = false;
   @Input() header = 'Default Header';
+  @Input() styleClass = '!w-full md:!w-96 lg:!w-[40rem] rounded-l-2xl'
   @Input() contentTemplate: TemplateRef<any> | null = null
 
   constructor(private uiService: UiService) {}

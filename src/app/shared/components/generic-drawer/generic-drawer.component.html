@@ -1,12 +1,13 @@
-<p-drawer [header]="header" [(visible)]="isOpen" position="right"(onHide)="close()" styleClass="!w-full md:!w-96 lg:!w-[40rem] rounded-l-2xl">
+<p-drawer [header]="header" [(visible)]="isOpen" position="right" (onHide)="close()" [styleClass]="styleClass">
     <ng-template #closeicon>
         <p-button size="small" icon="pi pi pi-times" [severity]="'danger'" [rounded]="true" text />
     </ng-template>
-    <ng-container *ngIf="contentTemplate; else defaultContent">
+    @if(contentTemplate) {
         <ng-container *ngTemplateOutlet="contentTemplate"></ng-container>
-      </ng-container>
-      <ng-template #defaultContent>
+    } @else {
+      <ng-template>
         <h2 class="text-xl font-semibold mb-4">Drawer Content</h2>
         <p>This is the default content of the drawer.</p>
       </ng-template>
+    }
 </p-drawer>

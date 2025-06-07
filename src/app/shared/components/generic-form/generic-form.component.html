@@ -61,7 +61,19 @@
                 }
               </div>
             }
-          }
+
+            @case ('dropdown') {
+            <app-generic-dropdown [id]="field.name" [type]="field?.dropdown?.apiEndpoint" [params]="dropdownParams[field.name]" [optionLabel]="field?.dropdown?.optionLabel"
+              [placeholder]="field.placeholder || 'Select'" [autoFetch]="field?.dropdown?.autoFetch" [editMode]="editMode"
+              [selectedValue]="form.get(field.name)?.value" [staticOptions]="field.options || []"
+              (selected)="onDropdownSelect($event, field.name)" />
+            }
+
+            @case ('date') {
+            <p-datepicker [id]="field.name" [formControlName]="field.name" [iconDisplay]="'input'" [showIcon]="true"
+              inputId="icondisplay" [selectionMode]="field?.date?.selectionMode" [dateFormat]="field?.date?.dateFormat" styleClass="w-full" />
+            }
+            }
 
           @if (form.get(field.name)?.invalid && (form.get(field.name)?.dirty || form.get(field.name)?.touched)) {
             <small class="text-red-500 block mt-1">{{ getErrorMessage(field.name) }}</small>

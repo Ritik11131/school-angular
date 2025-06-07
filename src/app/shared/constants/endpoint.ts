@@ -10,6 +10,13 @@ export const GET_VEHICLE_LIST_ENDPOINT = 'dashboard/vehicles/list';
 export const GET_CREW_LIST_ENDPOINT = 'crew/list';
 export const CREATE_CREW_ENDPOINT = 'crew/create';
 
+//Student Endpoints
+export const GET_STUDENT_LIST_ENDPOINT = 'LivetrackVts/Student/list';
+export const CREATE_STUDENT_ENDPOINT = 'LivetrackVts/Student/create';
+export const UPDATE_STUDENT_ENDPOINT = 'LivetrackVts/Student/update';
+
+
+
 // Parent Endpoints
 export const GET_PARENT_LIST_ENDPOINT = 'LivetrackVts/Parent/List';
 export const CREATE_PARENT_ENDPOINT = 'LivetrackVts/Parent/create';

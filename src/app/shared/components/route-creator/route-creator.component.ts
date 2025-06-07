@@ -1,456 +1,475 @@
 import { Component, OnInit, OnDestroy, EventEmitter, Output, ViewChild, ElementRef } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { FormsModule } from '@angular/forms';
 import { ButtonModule } from 'primeng/button';
 import { ToastModule } from 'primeng/toast';
-import { MessageService } from 'primeng/api';
-import { LeafletModule } from '@bluehalo/ngx-leaflet';
+import { InputTextModule } from 'primeng/inputtext';
+import { InputNumberModule } from 'primeng/inputnumber';
+import { CardModule } from 'primeng/card';
+import { DividerModule } from 'primeng/divider';
+import { ConfirmDialogModule } from 'primeng/confirmdialog';
+import { DialogModule } from 'primeng/dialog';
+import { PanelModule } from 'primeng/panel';
+import { ScrollPanelModule } from 'primeng/scrollpanel';
+import { MessageService, ConfirmationService } from 'primeng/api';
 
-import * as L from 'leaflet';
+declare var H: any;
 
-interface RoutePoint {
+interface RouteStop {
   id: string;
-  type: 'start' | 'stop' | 'end';
-  latlng: L.LatLng;
-  marker: L.Marker;
+  name: string;
+  lat: number;
+  lng: number;
+  marker?: any;
 }
 
 interface RouteData {
-  points: RoutePoint[];
-  linestring: L.Polyline | null;
-  totalDistance: number;
+  stops: RouteStop[];
+  routeGeometry?: any;
+  totalDistance?: number;
+  totalDuration?: number;
+  geoJson?: any;
 }
 
 @Component({
   selector: 'app-route-creator',
   standalone: true,
-  imports: [CommonModule, LeafletModule, ButtonModule, ToastModule],
-  providers: [MessageService],
+  imports: [
+    CommonModule, 
+    FormsModule,
+    ButtonModule, 
+    ToastModule, 
+    InputTextModule,
+    InputNumberModule,
+    CardModule,
+    DividerModule,
+    ConfirmDialogModule,
+    DialogModule,
+    PanelModule,
+    ScrollPanelModule
+  ],
+  providers: [MessageService, ConfirmationService],
   template: `
-   <!-- Fixed template with proper map container -->
-<div class="route-creator">
-  <!-- Top Toolbar - Clean icon-only design -->
-  <div class="flex align-items-center justify-content-between p-2 bg-white border-bottom-1 surface-border shadow-1">
-    <!-- Left toolbar section -->
-    <div class="flex align-items-center gap-2">
-      <!-- Drawing tools group -->
-      <div class="flex align-items-center gap-1 p-1 bg-gray-50 border-round">
-        <button 
-          class="tool-btn p-2 border-round border-none bg-transparent text-600 cursor-pointer transition-all transition-duration-200"
-          [class.tool-btn-active]="currentTool === 'linestring'"
-          (click)="setTool('linestring')"
-          title="Draw LineString">
-          <i class="pi pi-arrow-up-right-and-arrow-down-left-from-center text-lg"></i>
-        </button>
+  <div class="p-4 h-screen overflow-hidden">
+    <p-confirmDialog></p-confirmDialog>
+
+    <div class="grid gap-4 lg:grid-cols-12">
+      <!-- Left Panel -->
+      <div class="lg:col-span-4 w-full h-full">
+        <p-card header="Route Creator">
+          <div class="h-[calc(100vh-200px)] overflow-y-auto space-y-4">
+            
+            <!-- Add Stop Section -->
+            <p-panel header="Add New Stop" [collapsed]="false">
+              <div class="space-y-4">
+                <div>
+                  <label for="stopName" class="font-semibold text-gray-600 block mb-1">Stop Name</label>
+                  <input 
+                    pInputText 
+                    id="stopName" 
+                    [(ngModel)]="newStop.name" 
+                    placeholder="Enter stop name"
+                    class="w-full"
+                  />
+                </div>
+
+                <div class="grid grid-cols-2 gap-4">
+                  <div>
+                    <label for="stopLat" class="font-semibold text-gray-600 block mb-1">Latitude</label>
+                    <p-inputNumber 
+                      [(ngModel)]="newStop.lat" 
+                      [minFractionDigits]="6"
+                      [maxFractionDigits]="6"
+                      placeholder="28.613900"
+                      class="w-full"
+                    ></p-inputNumber>
+                  </div>
+                  <div>
+                    <label for="stopLng" class="font-semibold text-gray-600 block mb-1">Longitude</label>
+                    <p-inputNumber 
+                      [(ngModel)]="newStop.lng" 
+                      [minFractionDigits]="6"
+                      [maxFractionDigits]="6"
+                      placeholder="77.209000"
+                      class="w-full"
+                    ></p-inputNumber>
+                  </div>
+                </div>
+
+                <p-button 
+                  label="Add Stop" 
+                  icon="pi pi-plus" 
+                  (click)="addStop()"
+                  [disabled]="!isValidStop()"
+                  class="w-full"
+                ></p-button>
+
+                <div>
+                  <p-button 
+                    label="Add Stop by Map Click" 
+                    icon="pi pi-map-marker" 
+                    severity="secondary"
+                    (click)="toggleMapClickMode()"
+                    [outlined]="!mapClickMode"
+                    class="w-full"
+                  ></p-button>
+                  <small class="text-gray-500" *ngIf="mapClickMode">Click on map to add stop</small>
+                </div>
+              </div>
+            </p-panel>
+
+            <!-- Route Stops List -->
+            <p-panel header="Route Stops ({{ stops.length }})">
+              <p-scrollPanel [style]="{ width: '100%', height: '300px' }" *ngIf="stops.length > 0">
+                <div class="pr-2 space-y-2">
+                  <div 
+                    *ngFor="let stop of stops; let i = index" 
+                    class="p-3 rounded border border-gray-300 bg-white shadow-sm transition hover:-translate-y-0.5 hover:shadow-md"
+                  >
+                    <div class="flex justify-between">
+                      <div>
+                        <div class="font-semibold text-blue-600 mb-1">
+                          {{ i + 1 }}. {{ stop.name }}
+                        </div>
+                        <div class="text-sm text-gray-600">
+                          Lat: {{ stop.lat | number:'1.6-6' }}<br>
+                          Lng: {{ stop.lng | number:'1.6-6' }}
+                        </div>
+                      </div>
+                      <div class="flex flex-col gap-2">
+                        <p-button icon="pi pi-pencil" size="small" severity="secondary" [outlined]="true" (click)="editStop(stop)" pTooltip="Edit Stop"></p-button>
+                        <p-button icon="pi pi-trash" size="small" severity="danger" [outlined]="true" (click)="removeStop(stop.id)" pTooltip="Remove Stop"></p-button>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </p-scrollPanel>
+              <div *ngIf="stops.length === 0" class="text-center text-gray-500 py-4">
+                No stops added yet
+              </div>
+            </p-panel>
+
+            <!-- Route Actions -->
+            <p-panel header="Route Actions">
+              <div class="space-y-3">
+                <p-button 
+                  label="Calculate Route" 
+                  icon="pi pi-directions" 
+                  (click)="calculateRoute()"
+                  [disabled]="stops.length < 2"
+                  class="w-full"
+                ></p-button>
+                
+                <p-button 
+                  label="Clear All Stops" 
+                  icon="pi pi-trash" 
+                  severity="danger"
+                  [outlined]="true"
+                  (click)="clearAllStops()"
+                  [disabled]="stops.length === 0"
+                  class="w-full"
+                ></p-button>
+                
+                <p-button 
+                  label="Export GeoJSON" 
+                  icon="pi pi-download" 
+                  severity="success"
+                  [outlined]="true"
+                  (click)="exportGeoJSON()"
+                  [disabled]="!routeData.routeGeometry"
+                  class="w-full"
+                ></p-button>
+              </div>
+            </p-panel>
+
+            <!-- Route Info -->
+            <p-panel header="Route Information" *ngIf="routeData.totalDistance">
+              <div class="bg-gray-50 p-4 rounded border border-gray-200 space-y-2">
+                <div class="flex justify-between">
+                  <span class="font-semibold">Total Distance:</span>
+                  <span>{{ (routeData.totalDistance! / 1000) | number:'1.2-2' }} km</span>
+                </div>
+                <div class="flex justify-between">
+                  <span class="font-semibold">Estimated Time:</span>
+                  <span>{{ formatDuration(routeData.totalDuration!) }}</span>
+                </div>
+              </div>
+            </p-panel>
+
+          </div>
+        </p-card>
       </div>
-      
-      <!-- Import/Export tools group -->
-      <div class="flex align-items-center gap-1 p-1 bg-gray-50 border-round">
-        <input 
-          #fileInput 
-          type="file" 
-          accept=".geojson,.json" 
-          (change)="importGeoJSON($event)"
-          style="display: none">
-        
-        <button 
-          class="tool-btn p-2 border-round border-none bg-transparent text-600 cursor-pointer transition-all transition-duration-200"
-          (click)="triggerFileInput()"
-          title="Import GeoJSON">
-          <i class="pi pi-download text-base"></i>
-        </button>
-        
-        <button 
-          class="tool-btn p-2 border-round border-none bg-transparent text-600 cursor-pointer transition-all transition-duration-200"
-          [class.tool-btn-disabled]="!hasAnyData"
-          (click)="exportGeoJSON()"
-          [disabled]="!hasAnyData"
-          title="Export GeoJSON">
-          <i class="pi pi-upload text-base"></i>
-        </button>
-      </div>
-      
-      <!-- Marker tools group -->
-      <div class="flex align-items-center gap-1 p-1 bg-gray-50 border-round">
-        <button 
-          class="tool-btn p-2 border-round border-none bg-transparent text-600 cursor-pointer transition-all transition-duration-200"
-          [class.tool-btn-start]="currentTool === 'start'"
-          (click)="setTool('start')"
-          title="Add Start Point">
-          <i class="pi pi-play text-base"></i>
-        </button>
-        
-        <button 
-          class="tool-btn p-2 border-round border-none bg-transparent text-600 cursor-pointer transition-all transition-duration-200"
-          [class.tool-btn-stop]="currentTool === 'stop'"
-          (click)="setTool('stop')"
-          title="Add Stop Point">
-          <i class="pi pi-circle-fill text-base"></i>
-        </button>
-        
-        <button 
-          class="tool-btn p-2 border-round border-none bg-transparent text-600 cursor-pointer transition-all transition-duration-200"
-          [class.tool-btn-end]="currentTool === 'end'"
-          (click)="setTool('end')"
-          title="Add End Point">
-          <i class="pi pi-stop text-base"></i>
-        </button>
+
+      <!-- Right Panel - Map -->
+      <div class="lg:col-span-8 w-full h-full">
+        <p-card>
+          <div 
+            #mapContainer 
+            class="w-full h-[600px] bg-gray-200 rounded border border-gray-300 overflow-hidden"
+          ></div>
+        </p-card>
       </div>
     </div>
-    
-    <!-- Right toolbar section -->
-    <div class="flex align-items-center gap-1 p-1 bg-gray-50 border-round">
-      <button 
-        class="tool-btn p-2 border-round border-none bg-transparent text-600 cursor-pointer transition-all transition-duration-200"
-        [class.tool-btn-disabled]="!hasAnyData"
-        (click)="clearAll()"
-        [disabled]="!hasAnyData"
-        title="Clear All">
-        <i class="pi pi-trash text-base"></i>
-      </button>
-      
-      <button 
-        class="tool-btn p-2 border-round border-none bg-transparent text-600 cursor-pointer transition-all transition-duration-200"
-        [class.tool-btn-disabled]="!hasAnyData"
-        (click)="fitBounds()"
-        [disabled]="!hasAnyData"
-        title="Fit to View">
-        <i class="pi pi-expand text-base"></i>
-      </button>
-    </div>
+
+    <!-- Edit Stop Dialog -->
+    <p-dialog 
+      header="Edit Stop" 
+      [(visible)]="showEditDialog" 
+      [modal]="true" 
+      [style]="{ width: '400px' }"
+    >
+      <div class="space-y-4" *ngIf="editingStop">
+        <div>
+          <label for="editStopName" class="font-semibold text-gray-600 block mb-1">Stop Name</label>
+          <input 
+            pInputText 
+            id="editStopName" 
+            [(ngModel)]="editingStop.name"
+            class="w-full"
+          />
+        </div>
+        <div class="grid grid-cols-2 gap-4">
+          <div>
+            <label for="editStopLat" class="font-semibold text-gray-600 block mb-1">Latitude</label>
+            <p-inputNumber 
+              [(ngModel)]="editingStop.lat" 
+              [minFractionDigits]="6"
+              [maxFractionDigits]="6"
+              class="w-full"
+            ></p-inputNumber>
+          </div>
+          <div>
+            <label for="editStopLng" class="font-semibold text-gray-600 block mb-1">Longitude</label>
+            <p-inputNumber 
+              [(ngModel)]="editingStop.lng" 
+              [minFractionDigits]="6"
+              [maxFractionDigits]="6"
+              class="w-full"
+            ></p-inputNumber>
+          </div>
+        </div>
+      </div>
+      <ng-template pTemplate="footer">
+        <p-button label="Cancel" icon="pi pi-times" severity="secondary" [outlined]="true" (click)="cancelEdit()"></p-button>
+        <p-button label="Save" icon="pi pi-check" (click)="saveEdit()"></p-button>
+      </ng-template>
+    </p-dialog>
   </div>
-  
-  <!-- Status Bar -->
-  <div class="flex align-items-center justify-content-between p-2 bg-gray-50 border-bottom-1 surface-border text-sm text-600" 
-       *ngIf="currentTool || hasAnyData">
-    <div class="flex align-items-center gap-4">
-      <span *ngIf="currentTool" class="text-primary font-medium">
-        {{ getToolStatusText() }}
-      </span>
-    </div>
-    
-    <div class="flex align-items-center gap-4" *ngIf="hasAnyData">
-      <span class="text-700">
-        {{ getStatusInfo() }}
-      </span>
-    </div>
-  </div>
-  
-  <!-- Map Container - Fixed with explicit height and background -->
-  <div 
-    #mapContainer
-    class="map-container"
-    style="height: 500px; width: 100%; background-color: #f5f5f5; border: 1px solid #ddd; position: relative;"
-    leaflet 
-    [leafletOptions]="mapOptions" 
-    (leafletMapReady)="onMapReady($event)">
-    
-    <!-- Loading indicator (optional) -->
-    <div *ngIf="!mapReady" 
-         class="flex align-items-center justify-content-center h-full w-full absolute top-0 left-0 bg-gray-100">
-      <div class="text-center">
-        <i class="pi pi-spin pi-spinner text-2xl text-primary mb-2"></i>
-        <p class="text-sm text-600">Loading map...</p>
-      </div>
-    </div>
-  </div>
-</div>
-    
-    <p-toast></p-toast>
-  `,
-  styles: [`
-    .route-creator {
-     
-    }
-    
-    .toolbar {
-      background: #fff;
-      border-bottom: 1px solid #ddd;
-      padding: 8px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-      z-index: 1000;
-    }
-    
-    .toolbar-section {
-      display: flex;
-      gap: 8px;
-      align-items: center;
-    }
-    
-    .tool-group {
-      display: flex;
-      background: #f8f9fa;
-      border-radius: 6px;
-      padding: 2px;
-      border: 1px solid #e9ecef;
-    }
-    
-    .tool-btn {
-      display: flex;
-      align-items: center;
-      gap: 6px;
-      padding: 8px 12px;
-      border: none;
-      background: transparent;
-      color: #495057;
-      border-radius: 4px;
-      cursor: pointer;
-      font-size: 12px;
-      font-weight: 500;
-      transition: all 0.2s ease;
-      white-space: nowrap;
-    }
-    
-    .tool-btn:hover {
-      background: #e9ecef;
-      color: #212529;
-    }
-    
-    .tool-btn.active {
-      background: #007bff;
-      color: white;
-      box-shadow: 0 2px 4px rgba(0,123,255,0.3);
-    }
-    
-    .tool-btn:disabled {
-      opacity: 0.5;
-      cursor: not-allowed;
-    }
-    
-    .tool-btn.secondary {
-      background: #6c757d;
-      color: white;
-    }
-    
-    .tool-btn.secondary:hover:not(:disabled) {
-      background: #5a6268;
-    }
-    
-    .marker-start.active {
-      background: #28a745;
-    }
-    
-    .marker-stop.active {
-      background: #17a2b8;
-    }
-    
-    .marker-end.active {
-      background: #dc3545;
-    }
-    
-    .status-bar {
-      background: #f8f9fa;
-      border-bottom: 1px solid #dee2e6;
-      padding: 6px 12px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      font-size: 12px;
-      color: #6c757d;
-    }
-    
-    .status-section {
-      display: flex;
-      gap: 16px;
-    }
-    
-    .status-tool {
-      color: #007bff;
-      font-weight: 500;
-    }
-    
-    .status-info {
-      color: #495057;
-    }
-    
-    .map-container {
-     
-    }
-    
-    /* Custom map cursor styles */
-    .map-container.drawing-mode {
-      cursor: crosshair !important;
-    }
-    
-    .map-container.marker-mode {
-      cursor: pointer !important;
-    }
-    
-    /* Custom marker styles */
-    :global(.custom-route-marker) {
-      background: transparent !important;
-      border: none !important;
-    }
-    
-    :global(.user-location-marker) {
-      background: transparent !important;
-      border: none !important;
-    }
-    
-    /* Leaflet draw styles override */
-    :global(.leaflet-draw-tooltip) {
-      font-size: 12px !important;
-      background: rgba(0,0,0,0.8) !important;
-      color: white !important;
-    }
-    
-    /* Custom drawing tooltips */
-    :global(.drawing-tooltip) {
-      background: rgba(79, 70, 229, 0.9) !important;
-      color: white !important;
-      border: none !important;
-      border-radius: 4px !important;
-      font-size: 11px !important;
-      font-weight: 500 !important;
-      padding: 4px 8px !important;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.2) !important;
-    }
-    
-    :global(.drawing-tooltip::before) {
-      border-top-color: rgba(79, 70, 229, 0.9) !important;
-    }
-    
-    /* Professional line animations */
-    :global(.leaflet-interactive:hover) {
-      transition: all 0.2s ease !important;
-    }
-    
-    /* Enhanced cursor styles */
-    .map-container.drawing-mode {
-      cursor: crosshair !important;
-    }
-    
-    .map-container.drawing-mode:hover {
-      cursor: copy !important;
-    }
-  `]
+`,
+styles: []
+
 })
 export class RouteCreatorComponent implements OnInit, OnDestroy {
+  @ViewChild('mapContainer', { static: false }) mapContainer!: ElementRef;
+  @Output() routeDataChanged = new EventEmitter<RouteData>();
 
-   @Output() routeDataChanged = new EventEmitter<any>();
-   @ViewChild('fileInput', { static: false }) fileInput!: ElementRef<HTMLInputElement>;
-  map!: L.Map;
-  routeData: RouteData = {
-    points: [],
-    linestring: null,
-    totalDistance: 0
-  };
-  mapReady = false; // Add this if you want the loading indicator
+  // HERE Maps
+  private platform: any;
+  private map: any;
+  behavior: any;
+  ui: any;
+  private routingService: any;
   
-  currentTool: 'linestring' | 'start' | 'stop' | 'end' | null = null;
+  // Component state
+  stops: RouteStop[] = [
+  {
+    id: '1',
+    name: 'Shadipur',
+    lat: 28.6519,
+    lng: 77.1488
+  },
+  {
+    id: '2',
+    name: 'Rajouri Garden',
+    lat: 28.6517,
+    lng: 77.1235
+  }
+];;
+  routeData: RouteData = { stops: [] };
+  mapClickMode = false;
   
-  // Drawing state
-  isDrawing = false;
-  currentLinePoints: L.LatLng[] = [];
-  tempLine: L.Polyline | null = null;
-  drawingPoints: L.CircleMarker[] = [];
-  hoverPoint: L.CircleMarker | null = null;
-  drawingLayer!: L.LayerGroup;
-  markersLayer!: L.LayerGroup;
-  
-  userLocation: L.LatLng | null = null;
-  
-  mapOptions: L.MapOptions = {
-    layers: [
-      L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
-        attribution: '© OpenStreetMap contributors'
-      })
-    ],
-    zoom: 13,
-    center: L.latLng(28.6139, 77.2090) // Default to Delhi
+  // New stop form
+  newStop = {
+    name: '',
+    lat: null as number | null,
+    lng: null as number | null
   };
 
-  constructor(private messageService: MessageService) {}
+  // Edit dialog
+  showEditDialog = false;
+  editingStop: RouteStop | null = null;
+  editingStopBackup: RouteStop | null = null;
+
+  // HERE Maps API Key - Replace with your actual API key
+  private readonly HERE_API_KEY = 'bhm0avrp9LuWfcoxd6E8Uzv1oZn3i2Mfcrsv77Bnw7Y';
+
+  constructor(
+    private messageService: MessageService,
+    private confirmationService: ConfirmationService
+  ) {}
 
   ngOnInit() {
-    // Fix for default markers
-    delete (L.Icon.Default.prototype as any)._getIconUrl;
-    L.Icon.Default.mergeOptions({
-      iconRetinaUrl: 'assets/marker-icon-2x.png',
-      iconUrl: 'assets/marker-icon.png',
-      shadowUrl: 'assets/marker-shadow.png',
-    });
-
-    // Set up global remove function
-    window.removeRoutePoint = (id: string) => {
-      this.removeRoutePoint(id);
-    };
+    this.loadHereMapsAPI();
   }
 
   ngOnDestroy() {
-    if ((window as any).removeRoutePoint) {
-      (window as any).removeRoutePoint = undefined;
+    if (this.map) {
+      this.map.getViewPort().dispose();
     }
   }
 
-  onMapReady(map: L.Map) {
-    this.map = map;
-    this.mapReady = true;
+  private loadHereMapsAPI() {
+    // Check if HERE Maps API is already loaded
+    if (typeof H !== 'undefined' && H.service && H.Map) {
+      this.initializeMap();
+      return;
+    }
+
+    // Load HERE Maps API scripts in sequence
+    this.loadScript('https://js.api.here.com/v3/3.1/mapsjs-core.js')
+      .then(() => this.loadScript('https://js.api.here.com/v3/3.1/mapsjs-service.js'))
+      .then(() => this.loadScript('https://js.api.here.com/v3/3.1/mapsjs-ui.js'))
+      .then(() => this.loadScript('https://js.api.here.com/v3/3.1/mapsjs-mapevents.js'))
+      .then(() => {
+        // Load CSS
+        const link = document.createElement('link');
+        link.rel = 'stylesheet';
+        link.href = 'https://js.api.here.com/v3/3.1/mapsjs-ui.css';
+        document.head.appendChild(link);
+        
+        // Wait a bit for all scripts to be fully ready
+        setTimeout(() => {
+          this.initializeMap();
+        }, 500);
+      })
+      .catch(error => {
+        console.error('Error loading HERE Maps API:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Map Loading Error',
+          detail: 'Failed to load HERE Maps API'
+        });
+      });
+  }
+
+  private loadScript(src: string): Promise<void> {
+    return new Promise((resolve, reject) => {
+      const script = document.createElement('script');
+      script.src = src;
+      script.onload = () => resolve();
+      script.onerror = () => reject(new Error(`Failed to load script: ${src}`));
+      document.head.appendChild(script);
+    });
+  }
+
+  private initializeMap() {
     setTimeout(() => {
-      this.map.invalidateSize();
-    }, 200);
-    
-    // Create layers
-    this.drawingLayer = L.layerGroup().addTo(this.map);
-    this.markersLayer = L.layerGroup().addTo(this.map);
-    
-    // Get user location
-    this.getUserLocationAndZoom();
-    
-    // Add event listeners
-    this.setupMapEventListeners();
+      if (!this.mapContainer?.nativeElement) {
+        console.error('Map container not found');
+        return;
+      }
+
+      try {
+        // Validate HERE Maps API availability
+        if (typeof H === 'undefined' || !H.service || !H.Map) {
+          throw new Error('HERE Maps API not properly loaded');
+        }
+        console.log(this.HERE_API_KEY);
+        
+        // Check API key
+        if (!this.HERE_API_KEY) {
+          this.messageService.add({
+            severity: 'error',
+            summary: 'API Key Missing',
+            detail: 'Please set your HERE Maps API key in the component'
+          });
+          return;
+        }
+
+        // Initialize platform with API key
+        this.platform = new H.service.Platform({
+          'apikey': this.HERE_API_KEY
+        });
+
+        // Obtain the default map types from the platform
+        const defaultLayers = this.platform.createDefaultLayers();
+
+        // Validate default layers
+        if (!defaultLayers || !defaultLayers.vector || !defaultLayers.vector.normal) {
+          throw new Error('Failed to create default map layers');
+        }
+
+        // Initialize the map
+        this.map = new H.Map(
+          this.mapContainer.nativeElement,
+          defaultLayers.vector.normal.map,
+          {
+            zoom: 13,
+            center: { lat: 28.6139, lng: 77.2090 } // Delhi
+          }
+        );
+
+        // Make the map interactive
+        this.behavior = new H.mapevents.Behavior(new H.mapevents.MapEvents(this.map));
+        this.ui = new H.ui.UI.createDefault(this.map, defaultLayers);
+
+        // Initialize routing service
+        this.routingService = this.platform.getRoutingService();
+        console.log(this.routingService,'service');
+        
+
+        // Add map click listener
+        this.map.addEventListener('tap', (evt: any) => {
+          if (this.mapClickMode) {
+            const coord = this.map.screenToGeo(
+              evt.currentPointer.viewportX,
+              evt.currentPointer.viewportY
+            );
+            this.addStopFromMap(coord.lat, coord.lng);
+          }
+        });
+
+        // Get user location
+        this.getUserLocation();
+
+        this.messageService.add({
+          severity: 'success',
+          summary: 'Map Loaded',
+          detail: 'HERE Maps initialized successfully'
+        });
+
+      } catch (error) {
+        console.error('Map initialization error:', error);
+        this.messageService.add({
+          severity: 'error',
+          summary: 'Map Initialization Failed',
+          detail: 'Failed to initialize HERE Maps. Please check your API key and network connection.'
+        });
+      }
+    }, 100);
   }
 
-  private setupMapEventListeners() {
-    // Map click handler
-    this.map.on('click', (e: L.LeafletMouseEvent) => {
-      if (this.currentTool === 'linestring') {
-        this.handleLinestringClick(e.latlng);
-      } else if (this.currentTool && ['start', 'stop', 'end'].includes(this.currentTool)) {
-        this.addRoutePoint(e.latlng, this.currentTool as 'start' | 'stop' | 'end');
-      }
-    });
-
-    // Mouse move handler for drawing preview
-    this.map.on('mousemove', (e: L.LeafletMouseEvent) => {
-      if (this.currentTool === 'linestring') {
-        this.handleDrawingHover(e.latlng);
-      }
-    });
-
-    // Key press handler for finishing linestring
-    document.addEventListener('keydown', (e) => {
-      if (e.key === 'Enter' && this.isDrawing) {
-        this.finishLinestring();
-      } else if (e.key === 'Escape') {
-        this.cancelCurrentOperation();
-      }
-    });
-  }
-
-  private getUserLocationAndZoom() {
+  private getUserLocation() {
     if (navigator.geolocation) {
       navigator.geolocation.getCurrentPosition(
         (position) => {
-          const lat = position.coords.latitude;
-          const lng = position.coords.longitude;
-          this.userLocation = L.latLng(lat, lng);
+          const userLocation = {
+            lat: position.coords.latitude,
+            lng: position.coords.longitude
+          };
           
-          this.map.setView(this.userLocation, 15);
+          this.map.setCenter(userLocation);
+          this.map.setZoom(15);
+
+          // Add user location marker
+          const userIcon = new H.map.Icon(
+            '<svg width="20" height="20" xmlns="http://www.w3.org/2000/svg"><circle cx="10" cy="10" r="8" fill="#007cff" stroke="white" stroke-width="3"/></svg>',
+            { size: { w: 20, h: 20 } }
+          );
           
-          const userMarker = L.marker(this.userLocation, {
-            icon: L.divIcon({
-              className: 'user-location-marker',
-              html: '<div style="background: #007cff; width: 12px; height: 12px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,124,255,0.5);"></div>',
-              iconSize: [18, 18],
-              iconAnchor: [9, 9]
-            })
-          }).addTo(this.map);
-          
-          userMarker.bindPopup('Your Location');
-          
+          const userMarker = new H.map.Marker(userLocation, { icon: userIcon });
+          this.map.addObject(userMarker);
+
           this.messageService.add({
             severity: 'success',
             summary: 'Location Found',
@@ -469,738 +488,484 @@ export class RouteCreatorComponent implements OnInit, OnDestroy {
     }
   }
 
-  setTool(tool: 'linestring' | 'start' | 'stop' | 'end') {
-    // Cancel any current operation
-    this.cancelCurrentOperation();
+  isValidStop(): boolean {
+    return !!(this.newStop.name?.trim() && 
+             this.newStop.lat !== null && 
+             this.newStop.lng !== null);
+  }
+
+  addStop() {
+    if (!this.isValidStop()) return;
+
+    const stop: RouteStop = {
+      id: this.generateId(),
+      name: this.newStop.name!.trim(),
+      lat: this.newStop.lat!,
+      lng: this.newStop.lng!
+    };
+
+    this.stops.push(stop);
+    this.addMarkerToMap(stop);
+    this.clearNewStopForm();
+    this.updateRouteData();
+
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Stop Added',
+      detail: `${stop.name} added to route`
+    });
+  }
+
+  addStopFromMap(lat: number, lng: number) {
+    const stopName = `Stop ${this.stops.length + 1}`;
     
-    // Toggle tool
-    if (this.currentTool === tool) {
-      this.currentTool = null;
-      this.updateMapCursor();
-    } else {
-      this.currentTool = tool;
-      this.updateMapCursor();
+    const stop: RouteStop = {
+      id: this.generateId(),
+      name: stopName,
+      lat: lat,
+      lng: lng
+    };
+
+    this.stops.push(stop);
+    this.addMarkerToMap(stop);
+    this.updateRouteData();
+    this.mapClickMode = false;
+
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Stop Added',
+      detail: `${stop.name} added from map`
+    });
+  }
+
+  private addMarkerToMap(stop: RouteStop) {
+    const icon = new H.map.Icon(
+      `<svg width="30" height="40" xmlns="http://www.w3.org/2000/svg">
+        <path d="M15 0C6.716 0 0 6.716 0 15c0 8.284 15 25 15 25s15-16.716 15-25C30 6.716 23.284 0 15 0z" fill="#e74c3c"/>
+        <circle cx="15" cy="15" r="8" fill="white"/>
+        <text x="15" y="20" text-anchor="middle" font-size="12" font-weight="bold" fill="#e74c3c">${this.stops.length}</text>
+      </svg>`,
+      { size: { w: 30, h: 40 }, anchor: { x: 15, y: 40 } }
+    );
+
+    const marker = new H.map.Marker({ lat: stop.lat, lng: stop.lng }, { icon: icon });
+    marker.setData(stop);
+    
+    // Make marker draggable
+    marker.draggable = true;
+    
+    // Add drag event listener
+    marker.addEventListener('dragend', (evt: any) => {
+      const position = evt.target.getGeometry();
+      stop.lat = position.lat;
+      stop.lng = position.lng;
+      this.updateRouteData();
       
-      if (tool === 'linestring' && this.routeData.linestring) {
-        this.messageService.add({
-          severity: 'warn',
-          summary: 'LineString Exists',
-          detail: 'Clear existing route to draw a new one'
+      this.messageService.add({
+        severity: 'info',
+        summary: 'Stop Moved',
+        detail: `${stop.name} location updated`
+      });
+    });
+
+    stop.marker = marker;
+    this.map.addObject(marker);
+  }
+
+  removeStop(stopId: string) {
+    this.confirmationService.confirm({
+      message: 'Are you sure you want to remove this stop?',
+      header: 'Confirm Removal',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        const stopIndex = this.stops.findIndex(s => s.id === stopId);
+        if (stopIndex > -1) {
+          const stop = this.stops[stopIndex];
+          if (stop.marker) {
+            this.map.removeObject(stop.marker);
+          }
+          this.stops.splice(stopIndex, 1);
+          this.updateRouteData();
+          this.clearRoute();
+          
+          this.messageService.add({
+            severity: 'success',
+            summary: 'Stop Removed',
+            detail: 'Stop removed from route'
+          });
+        }
+      }
+    });
+  }
+
+  editStop(stop: RouteStop) {
+    this.editingStop = { ...stop };
+    this.editingStopBackup = { ...stop };
+    this.showEditDialog = true;
+  }
+
+  saveEdit() {
+    if (!this.editingStop) return;
+
+    const originalStop = this.stops.find(s => s.id === this.editingStop!.id);
+    if (originalStop) {
+      originalStop.name = this.editingStop.name;
+      originalStop.lat = this.editingStop.lat;
+      originalStop.lng = this.editingStop.lng;
+
+      // Update marker position
+      if (originalStop.marker) {
+        originalStop.marker.setGeometry({ lat: originalStop.lat, lng: originalStop.lng });
+      }
+
+      this.updateRouteData();
+      this.clearRoute();
+    }
+
+    this.showEditDialog = false;
+    this.editingStop = null;
+    this.editingStopBackup = null;
+
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Stop Updated',
+      detail: 'Stop information updated'
+    });
+  }
+
+  cancelEdit() {
+    this.showEditDialog = false;
+    this.editingStop = null;
+    this.editingStopBackup = null;
+  }
+
+  clearAllStops() {
+    this.confirmationService.confirm({
+      message: 'Are you sure you want to clear all stops?',
+      header: 'Confirm Clear All',
+      icon: 'pi pi-exclamation-triangle',
+      accept: () => {
+        this.stops.forEach(stop => {
+          if (stop.marker) {
+            this.map.removeObject(stop.marker);
+          }
         });
-        this.currentTool = null;
-        this.updateMapCursor();
-      }
-    }
-  }
-
-  private updateMapCursor() {
-    const container = this.map.getContainer();
-    container.classList.remove('drawing-mode', 'marker-mode');
-    
-    if (this.currentTool === 'linestring') {
-      container.classList.add('drawing-mode');
-    } else if (this.currentTool && ['start', 'stop', 'end'].includes(this.currentTool)) {
-      container.classList.add('marker-mode');
-    }
-  }
-
-  private handleLinestringClick(latlng: L.LatLng) {
-    if (!this.isDrawing) {
-      // Start drawing
-      this.isDrawing = true;
-      this.currentLinePoints = [latlng];
-      
-      // Create first point marker
-      this.addDrawingPoint(latlng, 0);
-      
-      // Create temporary line (initially just one point, invisible)
-      this.tempLine = L.polyline([latlng], {
-        color: '#4f46e5',
-        weight: 3,
-        opacity: 0,
-        dashArray: '8, 4',
-        lineCap: 'round',
-        lineJoin: 'round'
-      }).addTo(this.drawingLayer);
-      
-      this.messageService.add({
-        severity: 'info',
-        summary: 'Drawing Started',
-        detail: 'Click to add points, Enter to finish, Esc to cancel'
-      });
-    } else {
-      // Add point to current line
-      this.currentLinePoints.push(latlng);
-      this.addDrawingPoint(latlng, this.currentLinePoints.length - 1);
-      
-      // Update line and make it visible
-      this.tempLine?.setLatLngs(this.currentLinePoints);
-      if (this.tempLine && this.currentLinePoints.length >= 2) {
-        this.tempLine.setStyle({ opacity: 0.8 });
-      }
-    }
-  }
-
-  private finishLinestring() {
-    if (!this.isDrawing || this.currentLinePoints.length < 2) {
-      this.cancelCurrentOperation();
-      return;
-    }
-    
-    // Remove temporary elements
-    this.clearDrawingHelpers();
-    
-    // Create final linestring with professional styling
-    this.routeData.linestring = L.polyline(this.currentLinePoints, {
-      color: '#4f46e5',
-      weight: 4,
-      opacity: 0.9,
-      smoothFactor: 1,
-      lineCap: 'round',
-      lineJoin: 'round'
-    }).addTo(this.drawingLayer);
-    
-    // Add interactive hover effects to the final line
-    this.routeData.linestring.on('mouseover', () => {
-      this.routeData.linestring?.setStyle({
-        color: '#6366f1',
-        weight: 5,
-        opacity: 1
-      });
-    });
-    
-    this.routeData.linestring.on('mouseout', () => {
-      this.routeData.linestring?.setStyle({
-        color: '#4f46e5',
-        weight: 4,
-        opacity: 0.9
-      });
-    });
-    
-    // Add click handler for line editing (future feature)
-    this.routeData.linestring.on('click', () => {
-      this.messageService.add({
-        severity: 'info',
-        summary: 'Route Selected',
-        detail: 'LineString editing coming soon!'
-      });
-    });
-    
-    // Calculate distance
-    this.calculateDistance();
-    
-    // Reset drawing state
-    this.isDrawing = false;
-    this.currentLinePoints = [];
-    this.currentTool = null;
-    this.updateMapCursor();
-    
-    this.messageService.add({
-      severity: 'success',
-      summary: 'LineString Created',
-      detail: `Professional route drawn with ${this.routeData.linestring.getLatLngs().length} points`
-    });
-
-     this.emitRouteData();
-  }
-
-  private cancelCurrentOperation() {
-    if (this.isDrawing) {
-      this.clearDrawingHelpers();
-      this.isDrawing = false;
-      this.currentLinePoints = [];
-      this.messageService.add({
-        severity: 'info',
-        summary: 'Drawing Cancelled',
-        detail: 'LineString drawing cancelled'
-      });
-    }
-  }
-
-  private clearDrawingHelpers() {
-    // Remove temporary line
-    if (this.tempLine) {
-      this.drawingLayer.removeLayer(this.tempLine);
-      this.tempLine = null;
-    }
-    
-    // Remove drawing points
-    this.drawingPoints.forEach(point => {
-      this.drawingLayer.removeLayer(point);
-    });
-    this.drawingPoints = [];
-    
-    // Remove hover point
-    if (this.hoverPoint) {
-      this.drawingLayer.removeLayer(this.hoverPoint);
-      this.hoverPoint = null;
-    }
-  }
-
-  private addDrawingPoint(latlng: L.LatLng, index: number) {
-    const point = L.circleMarker(latlng, {
-      radius: 6,
-      fillColor: '#4f46e5',
-      color: '#ffffff',
-      weight: 2,
-      opacity: 1,
-      fillOpacity: 0.9
-    }).addTo(this.drawingLayer);
-    
-    // Add hover effects to drawing points
-    point.on('mouseover', () => {
-      point.setStyle({
-        radius: 8,
-        fillColor: '#6366f1',
-        weight: 3
-      });
-    });
-    
-    point.on('mouseout', () => {
-      point.setStyle({
-        radius: 6,
-        fillColor: '#4f46e5',
-        weight: 2
-      });
-    });
-    
-    // Add tooltip
-    point.bindTooltip(`Point ${index + 1}`, {
-      permanent: false,
-      direction: 'top',
-      className: 'drawing-tooltip'
-    });
-    
-    this.drawingPoints.push(point);
-  }
-
-  private handleDrawingHover(latlng: L.LatLng) {
-    if (this.currentTool !== 'linestring') {
-      if (this.hoverPoint) {
-        this.drawingLayer.removeLayer(this.hoverPoint);
-        this.hoverPoint = null;
-      }
-      return;
-    }
-    
-    // Remove existing hover point
-    if (this.hoverPoint) {
-      this.drawingLayer.removeLayer(this.hoverPoint);
-    }
-    
-    // Create hover point
-    this.hoverPoint = L.circleMarker(latlng, {
-      radius: 5,
-      fillColor: '#818cf8',
-      color: '#ffffff',
-      weight: 2,
-      opacity: 0.8,
-      fillOpacity: 0.6
-    }).addTo(this.drawingLayer);
-    
-    // If we're currently drawing, show preview line to hover point
-    if (this.isDrawing && this.currentLinePoints.length > 0) {
-      const previewPoints = [...this.currentLinePoints, latlng];
-      this.tempLine?.setLatLngs(previewPoints);
-    }
-  }
-
-  addRoutePoint(latlng: L.LatLng, type: 'start' | 'stop' | 'end') {
-    // Check if start or end already exists and remove it
-    if ((type === 'start' || type === 'end')) {
-      const existingPoint = this.routeData.points.find(p => p.type === type);
-      if (existingPoint) {
-        this.removeRoutePointInternal(existingPoint.id, false);
-      }
-    }
-
-    const pointId = `${type}_${Date.now()}`;
-    const marker = this.createMarker(latlng, type, pointId);
-    
-    const routePoint: RoutePoint = {
-      id: pointId,
-      type,
-      latlng,
-      marker
-    };
-
-    this.routeData.points.push(routePoint);
-    this.markersLayer.addLayer(marker);
-    
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Point Added',
-      detail: `${type.charAt(0).toUpperCase() + type.slice(1)} point added`
-    });
-
-    // Auto-disable tool for start/end
-    if (type === 'start' || type === 'end') {
-      this.currentTool = null;
-      this.updateMapCursor();
-    }
-  }
-
-  removeRoutePoint(id: string) {
-    this.removeRoutePointInternal(id, true);
-  }
-
-  private removeRoutePointInternal(id: string, showMessage: boolean = true) {
-    const pointIndex = this.routeData.points.findIndex(p => p.id === id);
-    if (pointIndex === -1) return;
-
-    const point = this.routeData.points[pointIndex];
-    
-    this.markersLayer.removeLayer(point.marker);
-    this.routeData.points.splice(pointIndex, 1);
-    
-    if (showMessage) {
-      this.messageService.add({
-        severity: 'info',
-        summary: 'Point Removed',
-        detail: `${point.type.charAt(0).toUpperCase() + point.type.slice(1)} point removed`
-      });
-      this.emitRouteData();
-    }
-  }
-
-  private createMarker(latlng: L.LatLng, type: 'start' | 'stop' | 'end', id: string): L.Marker {
-    let color: string;
-    let icon: string;
-    
-    switch (type) {
-      case 'start':
-        color = '#28a745';
-        icon = '🚀';
-        break;
-      case 'stop':
-        color = '#17a2b8';
-        icon = '📍';
-        break;
-      case 'end':
-        color = '#dc3545';
-        icon = '🏁';
-        break;
-    }
-
-    const marker = L.marker(latlng, {
-      icon: L.divIcon({
-        className: 'custom-route-marker',
-        html: `
-          <div style="
-            background: ${color}; 
-            width: 32px; 
-            height: 32px; 
-            border-radius: 50%; 
-            border: 3px solid white; 
-            box-shadow: 0 3px 10px rgba(0,0,0,0.3);
-            display: flex;
-            align-items: center;
-            justify-content: center;
-            font-size: 16px;
-          ">${icon}</div>
-        `,
-        iconSize: [32, 32],
-        iconAnchor: [16, 16]
-      })
-    });
-
-    marker.bindPopup(`
-      <div style="font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;">
-        <div style="font-weight: 600; margin-bottom: 8px; color: ${color};">
-          ${type.charAt(0).toUpperCase() + type.slice(1)} Point
-        </div>
-        <div style="font-size: 12px; color: #6c757d; margin-bottom: 8px;">
-          ${latlng.lat.toFixed(6)}, ${latlng.lng.toFixed(6)}
-        </div>
-        <button onclick="window.removeRoutePoint('${id}')" 
-                style="background: #dc3545; color: white; border: none; padding: 6px 12px; 
-                       border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: 500;">
-          Remove Point
-        </button>
-      </div>
-    `);
-
-    return marker;
-  }
-
-  private calculateDistance() {
-    if (!this.routeData.linestring) {
-      this.routeData.totalDistance = 0;
-      return;
-    }
-    
-    const points = this.routeData.linestring.getLatLngs() as L.LatLng[];
-    this.routeData.totalDistance = 0;
-    
-    for (let i = 0; i < points.length - 1; i++) {
-      this.routeData.totalDistance += points[i].distanceTo(points[i + 1]) / 1000;
-    }
-  }
-
-  clearAll() {
-    // Cancel any current operation
-    this.cancelCurrentOperation();
-    
-    // Clear layers
-    this.drawingLayer.clearLayers();
-    this.markersLayer.clearLayers();
-    
-    // Reset data
-    this.routeData = {
-      points: [],
-      linestring: null,
-      totalDistance: 0
-    };
-    
-    // Clear drawing helpers
-    this.drawingPoints = [];
-    this.hoverPoint = null;
-    
-    this.currentTool = null;
-    this.updateMapCursor();
-    
-    // Re-add user location marker
-    if (this.userLocation) {
-      const userMarker = L.marker(this.userLocation, {
-        icon: L.divIcon({
-          className: 'user-location-marker',
-          html: '<div style="background: #007cff; width: 12px; height: 12px; border-radius: 50%; border: 3px solid white; box-shadow: 0 0 10px rgba(0,124,255,0.5);"></div>',
-          iconSize: [18, 18],
-          iconAnchor: [9, 9]
-        })
-      }).addTo(this.map);
-      
-      userMarker.bindPopup('Your Location');
-    }
-    
-    this.messageService.add({
-      severity: 'info',
-      summary: 'Cleared',
-      detail: 'All route data has been removed'
-    });
-
-    this.emitRouteData();
-  }
-
-  fitBounds() {
-    if (!this.hasAnyData) return;
-    
-    const allLayers: L.Layer[] = [];
-    
-    if (this.routeData.linestring) {
-      allLayers.push(this.routeData.linestring);
-    }
-    
-    this.routeData.points.forEach(point => {
-      allLayers.push(point.marker);
-    });
-    
-    if (allLayers.length > 0) {
-      const group = L.featureGroup(allLayers);
-      this.map.fitBounds(group.getBounds().pad(0.1));
-    }
-  }
-
-  // Template helper methods
-  get hasAnyData(): boolean {
-    return this.routeData.points.length > 0 || this.routeData.linestring !== null;
-  }
-
-  get hasStart(): boolean {
-    return this.routeData.points.some(p => p.type === 'start');
-  }
-
-  get hasEnd(): boolean {
-    return this.routeData.points.some(p => p.type === 'end');
-  }
-
-  get stopCount(): number {
-    return this.routeData.points.filter(p => p.type === 'stop').length;
-  }
-
-  getToolStatusText(): string {
-    switch (this.currentTool) {
-      case 'linestring':
-        return this.isDrawing ? 
-          'Drawing LineString - Click to add points, Enter to finish, Esc to cancel' : 
-          'Click on map to start drawing route';
-      case 'start':
-        return 'Click on map to add START point';
-      case 'stop':
-        return 'Click on map to add STOP point';
-      case 'end':
-        return 'Click on map to add END point';
-      default:
-        return '';
-    }
-  }
-
-  getStatusInfo(): string {
-    const parts: string[] = [];
-    
-    if (this.routeData.linestring) {
-      const pointCount = (this.routeData.linestring.getLatLngs() as L.LatLng[]).length;
-      parts.push(`LineString: ${pointCount} points`);
-    }
-    
-    if (this.routeData.points.length > 0) {
-      const markers = [
-        this.hasStart ? 'Start' : null,
-        this.stopCount > 0 ? `${this.stopCount} Stop${this.stopCount > 1 ? 's' : ''}` : null,
-        this.hasEnd ? 'End' : null
-      ].filter(Boolean);
-      
-      if (markers.length > 0) {
-        parts.push(`Markers: ${markers.join(', ')}`);
-      }
-    }
-    
-    if (this.routeData.totalDistance > 0) {
-      parts.push(`Distance: ${this.routeData.totalDistance.toFixed(2)} km`);
-    }
-    
-    return parts.join(' | ');
-  }
-
-
-   // Import GeoJSON functionality
-  importGeoJSON(event: Event) {
-    const input = event.target as HTMLInputElement;
-    const file = input.files?.[0];
-    
-    if (!file) return;
-    
-    if (!file.name.toLowerCase().endsWith('.geojson') && !file.name.toLowerCase().endsWith('.json')) {
-      this.messageService.add({
-        severity: 'error',
-        summary: 'Invalid File',
-        detail: 'Please select a GeoJSON (.geojson or .json) file'
-      });
-      return;
-    }
-    
-    const reader = new FileReader();
-    reader.onload = (e) => {
-      try {
-        const geoJsonData = JSON.parse(e.target?.result as string);
-        this.loadGeoJSONData(geoJsonData);
         
-        // Clear the input value so the same file can be selected again
-        input.value = '';
+        this.stops = [];
+        this.clearRoute();
+        this.updateRouteData();
         
         this.messageService.add({
           severity: 'success',
-          summary: 'Import Successful',
-          detail: 'GeoJSON data loaded successfully'
-        });
-      } catch (error) {
-        console.error('Error parsing GeoJSON:', error);
-        this.messageService.add({
-          severity: 'error',
-          summary: 'Import Failed',
-          detail: 'Invalid GeoJSON format'
+          summary: 'All Stops Cleared',
+          detail: 'All stops removed from route'
         });
       }
-    };
-    
-    reader.readAsText(file);
-  }
-
-  // Load GeoJSON data into the map
-  private loadGeoJSONData(geoJson: any) {
-    // Clear existing data first
-    this.clearAll();
-    
-    if (!geoJson.features || !Array.isArray(geoJson.features)) {
-      throw new Error('Invalid GeoJSON structure');
-    }
-    
-    geoJson.features.forEach((feature: any) => {
-      if (feature.geometry && feature.geometry.coordinates) {
-        switch (feature.geometry.type) {
-          case 'LineString':
-            this.loadLineString(feature.geometry.coordinates);
-            break;
-          case 'Point':
-            this.loadPoint(feature.geometry.coordinates, feature.properties);
-            break;
-        }
-      }
-    });
-    
-    // Fit map to imported data
-    setTimeout(() => {
-      this.fitBounds();
-    }, 100);
-    
-    // Calculate distance for imported linestring
-    this.calculateDistance();
-    
-    // Emit the loaded data
-    this.emitRouteData();
-  }
-
-  // Load LineString from coordinates
-  private loadLineString(coordinates: number[][]) {
-    const latLngs = coordinates.map(coord => L.latLng(coord[1], coord[0]));
-    
-    this.routeData.linestring = L.polyline(latLngs, {
-      color: '#4f46e5',
-      weight: 4,
-      opacity: 0.9,
-      smoothFactor: 1,
-      lineCap: 'round',
-      lineJoin: 'round'
-    }).addTo(this.drawingLayer);
-    
-    // Add interactive hover effects
-    this.routeData.linestring.on('mouseover', () => {
-      this.routeData.linestring?.setStyle({
-        color: '#6366f1',
-        weight: 5,
-        opacity: 1
-      });
-    });
-    
-    this.routeData.linestring.on('mouseout', () => {
-      this.routeData.linestring?.setStyle({
-        color: '#4f46e5',
-        weight: 4,
-        opacity: 0.9
-      });
     });
   }
 
-  // Load Point from coordinates and properties
-  private loadPoint(coordinates: number[], properties: any) {
-    const latlng = L.latLng(coordinates[1], coordinates[0]);
-    let pointType: 'start' | 'stop' | 'end' = 'stop';
+  toggleMapClickMode() {
+    this.mapClickMode = !this.mapClickMode;
     
-    // Determine point type from properties
-    if (properties && properties.type) {
-      const type = properties.type.toLowerCase();
-      if (['start', 'stop', 'end'].includes(type)) {
-        pointType = type as 'start' | 'stop' | 'end';
-      }
-    } else if (properties && properties.marker) {
-      // Alternative property name for marker type
-      const type = properties.marker.toLowerCase();
-      if (['start', 'stop', 'end'].includes(type)) {
-        pointType = type as 'start' | 'stop' | 'end';
-      }
-    }
-    
-    this.addRoutePoint(latlng, pointType);
+    this.messageService.add({
+      severity: 'info',
+      summary: this.mapClickMode ? 'Map Click Enabled' : 'Map Click Disabled',
+      detail: this.mapClickMode ? 'Click on map to add stops' : 'Map click mode disabled'
+    });
   }
 
-  // Export GeoJSON functionality
-  exportGeoJSON() {
-    if (!this.hasAnyData) {
+  calculateRoute() {
+    if (this.stops.length < 2) {
       this.messageService.add({
         severity: 'warn',
-        summary: 'No Data',
-        detail: 'No route data to export'
+        summary: 'Insufficient Stops',
+        detail: 'At least 2 stops are required for routing'
       });
       return;
     }
 
-    const geoJson = this.generateGeoJSON();
-    
-    // Create and download file
-    const blob = new Blob([JSON.stringify(geoJson, null, 2)], { 
-      type: 'application/json' 
-    });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.download = `route_${new Date().toISOString().split('T')[0]}.geojson`;
-    link.click();
-    URL.revokeObjectURL(url);
-    
-    this.messageService.add({
-      severity: 'success',
-      summary: 'Export Successful',
-      detail: 'GeoJSON file downloaded'
-    });
-    
-    // Also emit the GeoJSON data
-    this.emitRouteData();
-  }
+    if (!this.routingService) {
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Routing Service Error',
+        detail: 'Routing service not initialized'
+      });
+      return;
+    }
 
-  // Generate GeoJSON from current route data
-  generateGeoJSON(): any {
-    const features: any[] = [];
-    
-    // Add LineString feature
-    if (this.routeData.linestring) {
-      const coordinates = (this.routeData.linestring.getLatLngs() as L.LatLng[])
-        .map(latlng => [latlng.lng, latlng.lat]);
-      
-      features.push({
-        type: 'Feature',
-        geometry: {
-          type: 'LineString',
-          coordinates: coordinates
+    // Clear existing route
+    this.clearRoute();
+
+    try {
+      // Prepare route parameters for HERE Routing API v8
+      const routeParams: any = {
+        mode: 'fastest;car',
+         waypoint0: 'geo!37.80221,-122.4191',
+         waypoint1: 'geo!37.76839,-122.51089',
+         representation: 'display'
+      };
+
+      // Add intermediate waypoints (via points)
+      if (this.stops.length > 2) {
+        const viaPoints = this.stops.slice(1, -1).map(stop => `${stop.lat},${stop.lng}`);
+        routeParams.via = viaPoints.join('!');
+      }
+
+      // Use the newer routing API format
+      this.routingService.calculateRoute(
+        routeParams,
+        (result: any) => {
+          try {
+            if (result && result.routes && result.routes[0]) {
+              const route = result.routes[0];
+              this.displayRouteV8(route);
+              this.updateRouteInfoV8(route);
+              
+              this.messageService.add({
+                severity: 'success',
+                summary: 'Route Calculated',
+                detail: 'Route calculated successfully'
+              });
+            } else {
+              throw new Error('No route found in response');
+            }
+          } catch (error) {
+            console.error('Route processing error:', error);
+            this.messageService.add({
+              severity: 'error',
+              summary: 'Route Processing Error',
+              detail: 'Failed to process route data'
+            });
+          }
         },
-        properties: {
-          type: 'route',
-          distance: this.routeData.totalDistance,
-          points: coordinates.length
+        (error: any) => {
+          console.error('Routing API error:', error);
+          this.messageService.add({
+            severity: 'error',
+            summary: 'Routing Error',
+            detail: 'Failed to calculate route. Please check your API key and network connection.'
+          });
         }
+      );
+    } catch (error) {
+      console.error('Route calculation error:', error);
+      this.messageService.add({
+        severity: 'error',
+        summary: 'Route Calculation Error',
+        detail: 'An error occurred while calculating the route'
       });
     }
-    
-    // Add Point features
-    this.routeData.points.forEach(point => {
-      features.push({
-        type: 'Feature',
-        geometry: {
-          type: 'Point',
-          coordinates: [point.latlng.lng, point.latlng.lat]
-        },
-        properties: {
-          type: point.type,
-          id: point.id
+  }
+
+  private displayRouteV8(route: any) {
+    try {
+      const polyline = route.sections[0].polyline;
+      const lineString = H.geo.LineString.fromFlexiblePolyline(polyline);
+
+      const routeLine = new H.map.Polyline(lineString, {
+        style: {
+          strokeColor: '#007cff',
+          lineWidth: 6,
+          lineCap: 'round',
+          lineJoin: 'round'
         }
       });
+
+      this.map.addObject(routeLine);
+      this.routeData.routeGeometry = routeLine;
+
+      // Fit view to route
+      this.map.getViewModel().setLookAtData({
+        bounds: routeLine.getBoundingBox()
+      });
+    } catch (error) {
+      console.error('Route display error:', error);
+      // Fallback to simple line if polyline decoding fails
+      this.displaySimpleRoute();
+    }
+  }
+
+  private displaySimpleRoute() {
+    const lineString = new H.geo.LineString();
+    
+    this.stops.forEach(stop => {
+      lineString.pushPoint({ lat: stop.lat, lng: stop.lng });
+    });
+
+    const routeLine = new H.map.Polyline(lineString, {
+      style: {
+        strokeColor: '#007cff',
+        lineWidth: 6,
+        lineCap: 'round',
+        lineJoin: 'round'
+      }
+    });
+
+    this.map.addObject(routeLine);
+    this.routeData.routeGeometry = routeLine;
+
+    // Fit view to route
+    this.map.getViewModel().setLookAtData({
+      bounds: routeLine.getBoundingBox()
+    });
+  }
+
+  private updateRouteInfoV8(route: any) {
+    try {
+      const summary = route.sections[0].summary;
+      this.routeData.totalDistance = summary.length;
+      this.routeData.totalDuration = summary.duration;
+    } catch (error) {
+      console.error('Route info update error:', error);
+      // Set default values
+      this.routeData.totalDistance = 0;
+      this.routeData.totalDuration = 0;
+    }
+  }
+
+  private displayRoute(route: any) {
+    const shape = route.shape;
+    const lineString = new H.geo.LineString();
+
+    shape.forEach((point: string) => {
+      const [lat, lng] = point.split(',').map(Number);
+      lineString.pushPoint({ lat, lng });
+    });
+
+    const routeLine = new H.map.Polyline(lineString, {
+      style: {
+        strokeColor: '#007cff',
+        lineWidth: 6,
+        lineCap: 'round',
+        lineJoin: 'round'
+      }
+    });
+
+    routeLine.draggable = true;
+    this.map.addObject(routeLine);
+
+    // Store route data
+    this.routeData.routeGeometry = routeLine;
+
+    // Fit view to route
+    this.map.getViewModel().setLookAtData({
+      bounds: routeLine.getBoundingBox()
+    });
+  }
+
+  private updateRouteInfo(route: any) {
+    const summary = route.summary;
+    this.routeData.totalDistance = summary.distance;
+    this.routeData.totalDuration = summary.trafficTime || summary.baseTime;
+  }
+
+  private clearRoute() {
+    if (this.routeData.routeGeometry) {
+      this.map.removeObject(this.routeData.routeGeometry);
+      this.routeData.routeGeometry = null;
+      this.routeData.totalDistance = undefined;
+      this.routeData.totalDuration = undefined;
+    }
+  }
+
+  exportGeoJSON() {
+    if (!this.routeData.routeGeometry) {
+      this.messageService.add({
+        severity: 'warn',
+        summary: 'No Route',
+        detail: 'Calculate a route first before exporting'
+      });
+      return;
+    }
+
+    const geoJson = {
+      type: 'FeatureCollection',
+      features: [
+        // Route line
+        {
+          type: 'Feature',
+          geometry: {
+            type: 'LineString',
+            coordinates: this.getRouteCoordinates()
+          },
+          properties: {
+            type: 'route',
+            distance: this.routeData.totalDistance,
+            duration: this.routeData.totalDuration
+          }
+        },
+        // Stops
+        ...this.stops.map((stop, index) => ({
+          type: 'Feature',
+          geometry: {
+            type: 'Point',
+            coordinates: [stop.lng, stop.lat]
+          },
+          properties: {
+            type: 'stop',
+            name: stop.name,
+            order: index + 1
+          }
+        }))
+      ]
+    };
+
+    this.routeData.geoJson = geoJson;
+    this.routeDataChanged.emit(this.routeData);
+
+    // Download GeoJSON file
+    const blob = new Blob([JSON.stringify(geoJson, null, 2)], { type: 'application/json' });
+    const url = window.URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.href = url;
+    link.download = `route-${new Date().toISOString().split('T')[0]}.geojson`;
+    link.click();
+    window.URL.revokeObjectURL(url);
+
+    this.messageService.add({
+      severity: 'success',
+      summary: 'Export Complete',
+      detail: 'GeoJSON file downloaded successfully'
+    });
+  }
+
+  private getRouteCoordinates(): number[][] {
+    if (!this.routeData.routeGeometry) return [];
+    
+    const lineString = this.routeData.routeGeometry.getGeometry();
+    const coordinates: number[][] = [];
+    
+    lineString.eachLatLngAlt((lat: number, lng: number) => {
+      coordinates.push([lng, lat]);
     });
     
-    return {
-      type: 'FeatureCollection',
-      features: features,
-      properties: {
-        created: new Date().toISOString(),
-        totalDistance: this.routeData.totalDistance,
-        pointCount: this.routeData.points.length
-      }
+    return coordinates;
+  }
+
+  formatDuration(seconds: number): string {
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    
+    if (hours > 0) {
+      return `${hours}h ${minutes}m`;
+    }
+    return `${minutes}m`;
+  }
+
+  private clearNewStopForm() {
+    this.newStop = {
+      name: '',
+      lat: null,
+      lng: null
     };
   }
 
-  // Emit route data to parent component
-  private emitRouteData() {
-    const geoJson = this.generateGeoJSON();
-    this.routeDataChanged.emit({
-      geoJson: geoJson,
-      routeData: {
-        totalDistance: this.routeData.totalDistance,
-        pointCount: this.routeData.points.length,
-        hasLineString: !!this.routeData.linestring,
-        hasStart: this.hasStart,
-        hasEnd: this.hasEnd,
-        stopCount: this.stopCount
-      }
-    });
+  private updateRouteData() {
+    this.routeData.stops = [...this.stops];
+    this.routeDataChanged.emit(this.routeData);
   }
 
-   // Trigger file input
-  triggerFileInput() {
-    this.fileInput.nativeElement.click();
-  }
-}
-
-// Global function for popup remove buttons
-declare global {
-  interface Window {
-    removeRoutePoint: (id: string) => void;
+  private generateId(): string {
+    return Date.now().toString(36) + Math.random().toString(36).substr(2);
   }
 }

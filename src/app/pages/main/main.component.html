@@ -1,4 +1,4 @@
-<section class="landing-hero px-8 lg:px-20">
+<section class="">
     <div class="grid gap-6 justify-items-center">
         <div
             class="grid bg-surface-0 border border-black/10 dark:border-white/20 dark:bg-surface-950 w-full h-[85vh] max-h-[1040px] 
@@ -109,7 +109,7 @@
     </div>
 </section>
 
-    <app-generic-drawer [isOpen]="uiService.isDrawerOpen()" [contentTemplate]="uiService.drawerContent()" [header]="uiService.drawerHeader()">
+    <app-generic-drawer [isOpen]="uiService.isDrawerOpen()" [contentTemplate]="uiService.drawerContent()" [header]="uiService.drawerHeader()" [styleClass]="uiService.drawerStyleClass()">
     </app-generic-drawer>
   <p-toast [life]="2000" [breakpoints]="{
     '920px': { width: '50%' },
