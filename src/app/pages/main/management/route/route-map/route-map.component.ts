@@ -41,14 +41,20 @@ interface RouteAnalysis {
     <div class="map-container">
       <div #mapElement class="map-element" [style.height]="height"></div>
       <div class="map-controls">
+        <button (click)="triggerFileInput()" class="control-btn import-btn">
+          <span>📁</span> Import GeoJSON
+        </button>
         <button (click)="fitBounds()" class="control-btn">
           <span>📍</span> Fit to Route
         </button>
         <button (click)="toggleAnimation()" class="control-btn">
           <span>{{isAnimating ? '⏸️' : '▶️'}}</span> {{isAnimating ? 'Pause' : 'Play'}} Animation
         </button>
-        <button (click)="exportGeoJSON()" class="control-btn">
+        <!-- <button (click)="exportGeoJSON()" class="control-btn">
           <span>💾</span> Export GeoJSON
+        </button> -->
+        <button (click)="clearMap()" class="control-btn clear-btn" *ngIf="geoJsonData">
+          <span>🗑️</span> Clear Map
         </button>
       </div>
       <div class="route-info" *ngIf="routeAnalysis">
@@ -61,6 +67,27 @@ interface RouteAnalysis {
         </div>
         <div class="info-item">
           <strong>Stops:</strong> {{ routeAnalysis.stops.length }}
+        </div>
+      </div>
+      
+      <!-- Hidden file input -->
+      <input 
+        #fileInput 
+        type="file" 
+        accept=".json,.geojson" 
+        (change)="onFileSelected($event)"
+        style="display: none"
+      >
+      
+      <!-- Import status overlay -->
+      <div class="import-overlay" *ngIf="importStatus.show">
+        <div class="import-status" [ngClass]="importStatus.type">
+          <div class="status-icon">
+            <span *ngIf="importStatus.type === 'loading'">⏳</span>
+            <span *ngIf="importStatus.type === 'success'">✅</span>
+            <span *ngIf="importStatus.type === 'error'">❌</span>
+          </div>
+          <div class="status-message">{{ importStatus.message }}</div>
         </div>
       </div>
     </div>
@@ -109,6 +136,24 @@ interface RouteAnalysis {
       box-shadow: 0 4px 12px rgba(0, 0, 0, 0.2);
     }
     
+    .import-btn {
+      background: rgba(59, 130, 246, 0.95);
+      color: white;
+    }
+    
+    .import-btn:hover {
+      background: rgb(59, 130, 246);
+    }
+    
+    .clear-btn {
+      background: rgba(239, 68, 68, 0.95);
+      color: white;
+    }
+    
+    .clear-btn:hover {
+      background: rgb(239, 68, 68);
+    }
+    
     .route-info {
       position: absolute;
       bottom: 20px;
@@ -136,13 +181,62 @@ interface RouteAnalysis {
     .info-item strong {
       color: #333;
     }
+    
+    .import-overlay {
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: rgba(0, 0, 0, 0.5);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      z-index: 2000;
+      border-radius: 8px;
+    }
+    
+    .import-status {
+      background: white;
+      padding: 20px;
+      border-radius: 8px;
+      box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+      min-width: 200px;
+    }
+    
+    .import-status.loading {
+      border-left: 4px solid #3b82f6;
+    }
+    
+    .import-status.success {
+      border-left: 4px solid #22c55e;
+    }
+    
+    .import-status.error {
+      border-left: 4px solid #ef4444;
+    }
+    
+    .status-icon {
+      font-size: 20px;
+    }
+    
+    .status-message {
+      font-size: 14px;
+      font-weight: 500;
+    }
   `]
 })
 export class RouteMapComponent implements OnInit, AfterViewInit, OnDestroy {
   @ViewChild('mapElement', { static: true }) mapElement!: ElementRef;
+  @ViewChild('fileInput', { static: true }) fileInput!: ElementRef;
   @Input() geoJsonData: GeoJSONData | null = null;
   @Input() height: string = '500px';
   @Output() geoJsonExport = new EventEmitter<GeoJSONData>();
+  @Output() geoJsonImport = new EventEmitter<GeoJSONData>();
+  @Output() importError = new EventEmitter<string>();
   
   private map: L.Map | null = null;
   private routeLayer: L.FeatureGroup | null = null;
@@ -150,6 +244,12 @@ export class RouteMapComponent implements OnInit, AfterViewInit, OnDestroy {
   
   isAnimating = false;
   routeAnalysis: RouteAnalysis | null = null;
+  
+  importStatus = {
+    show: false,
+    type: 'loading' as 'loading' | 'success' | 'error',
+    message: ''
+  };
   
   // Custom Icons
   private readonly icons = {
@@ -194,7 +294,7 @@ export class RouteMapComponent implements OnInit, AfterViewInit, OnDestroy {
       if (this.geoJsonData) {
         this.loadGeoJSON(this.geoJsonData);
       }
-    },100)
+    }, 100);
   }
 
   ngOnDestroy() {
@@ -203,6 +303,130 @@ export class RouteMapComponent implements OnInit, AfterViewInit, OnDestroy {
     }
     if (this.map) {
       this.map.remove();
+    }
+  }
+
+  // Import functionality methods
+  triggerFileInput() {
+    this.fileInput.nativeElement.click();
+  }
+
+  onFileSelected(event: any) {
+    const file = event.target.files[0];
+    if (!file) return;
+
+    this.showImportStatus('loading', 'Reading file...');
+
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      try {
+        const content = e.target?.result as string;
+        const geoJsonData = JSON.parse(content);
+        
+        if (this.validateGeoJSON(geoJsonData)) {
+          this.showImportStatus('success', 'File imported successfully!');
+          this.geoJsonData = geoJsonData;
+          this.loadGeoJSON(geoJsonData);
+          this.geoJsonImport.emit(geoJsonData);
+          
+          setTimeout(() => {
+            this.hideImportStatus();
+          }, 2000);
+        } else {
+          this.showImportStatus('error', 'Invalid GeoJSON format');
+          this.importError.emit('Invalid GeoJSON format');
+          setTimeout(() => {
+            this.hideImportStatus();
+          }, 3000);
+        }
+      } catch (error) {
+        this.showImportStatus('error', 'Error parsing JSON file');
+        this.importError.emit('Error parsing JSON file');
+        setTimeout(() => {
+          this.hideImportStatus();
+        }, 3000);
+      }
+    };
+
+    reader.onerror = () => {
+      this.showImportStatus('error', 'Error reading file');
+      this.importError.emit('Error reading file');
+      setTimeout(() => {
+        this.hideImportStatus();
+      }, 3000);
+    };
+
+    reader.readAsText(file);
+    
+    // Reset file input
+    event.target.value = '';
+  }
+
+  private validateGeoJSON(data: any): boolean {
+    try {
+      // Basic GeoJSON validation
+      if (!data || typeof data !== 'object') {
+        return false;
+      }
+
+      if (data.type !== 'FeatureCollection') {
+        return false;
+      }
+
+      if (!Array.isArray(data.features)) {
+        return false;
+      }
+
+      // Validate features
+      for (const feature of data.features) {
+        if (!feature || feature.type !== 'Feature') {
+          return false;
+        }
+
+        if (!feature.geometry || !feature.properties) {
+          return false;
+        }
+
+        if (!['Point', 'LineString'].includes(feature.geometry.type)) {
+          return false;
+        }
+
+        if (!Array.isArray(feature.geometry.coordinates)) {
+          return false;
+        }
+      }
+
+      return true;
+    } catch (error) {
+      return false;
+    }
+  }
+
+  private showImportStatus(type: 'loading' | 'success' | 'error', message: string) {
+    this.importStatus = {
+      show: true,
+      type,
+      message
+    };
+  }
+
+  private hideImportStatus() {
+    this.importStatus.show = false;
+  }
+
+  clearMap() {
+    if (this.routeLayer && this.map) {
+      this.map.removeLayer(this.routeLayer);
+      this.routeLayer = null;
+    }
+    
+    this.geoJsonData = null;
+    this.routeAnalysis = null;
+    this.isAnimating = false;
+    
+    if (this.animationInterval) {
+      clearInterval(this.animationInterval);
+      this.animationInterval = null;
     }
   }
 

@@ -10,9 +10,9 @@
     <!-- <app-route-creator (routeDataChanged)="handleRouteCreated($event)"/> -->
 <div class="flex gap-5 w-full">
   <div class="w-[70%]">
-    <app-route-map      
-      [geoJsonData]="routeData"      
-      [height]="'600px'"     
+    <app-route-map           
+      [height]="'600px'"    
+    (geoJsonImport)="onGeoJsonImported($event)" 
       (geoJsonExport)="onGeoJsonExport($event)">
     </app-route-map>
   </div>
