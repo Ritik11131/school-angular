@@ -7,8 +7,23 @@
 
 <ng-template #createRouteContent>
     <h3 class="text-xl font-semibold mb-4 text-muted-color-emphasis">Create a Route</h3>
-    <app-route-creator (routeDataChanged)="handleRouteCreated($event)"/>
-    <app-generic-form [fields]="routeFormFields()" (formSubmit)="handleFormSubmit($event)"></app-generic-form>
+    <!-- <app-route-creator (routeDataChanged)="handleRouteCreated($event)"/> -->
+<div class="flex gap-5 w-full">
+  <div class="w-[70%]">
+    <app-route-map      
+      [geoJsonData]="routeData"      
+      [height]="'600px'"     
+      (geoJsonExport)="onGeoJsonExport($event)">
+    </app-route-map>
+  </div>
+  
+  <div class="w-[30%]">
+    <app-generic-form 
+      [fields]="routeFormFields()" 
+      (formSubmit)="handleFormSubmit($event)">
+    </app-generic-form>
+  </div>
+</div>
 </ng-template>
 
 <ng-template #viewRouteContent>
